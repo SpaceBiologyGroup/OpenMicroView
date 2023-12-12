@@ -1,3 +1,6 @@
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+
 # Preamble
 Please note that you'll need to be logged in as `root` (command `sudo su`)
 or to prepend `sudo` to most commands bellow, in particular for installation,
