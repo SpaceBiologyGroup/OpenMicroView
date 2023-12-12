@@ -2,6 +2,7 @@
 Please note that you'll need to be logged in as `root` (command `sudo su`)
 or to prepend `sudo` to most commands bellow, in particular for installation,
 running or service interaction.
+
 # Installation
 ## Raspberry Pi Configuration
 The Raspberry Pi configuration is not covered by this installer as it depends
@@ -9,7 +10,7 @@ on the operating system you have installed. Nevertheless here are some
 recommendations for the configuration.
 
 ### Raspi-Config
-The following settinsg should be manually set using `raspi-config`:
+The following settings should be manually set using `raspi-config`:
 
 If you have a recent system, you must activate legacy-camera support via:  
 `3 Interface Options` > `I1 Legacy Camera` > `Enable`
@@ -30,13 +31,18 @@ The following settings should be set in the config file `/boot/config.txt`:
     - `gpu_mem=128`
 
 #### Allow software to run as normal user
-While this is theoritically feasable, this procedure as not been tested.
+While this is theoritically feasable, this procedure **has not been tested** and
+is therefore not recommended.  
 To allow the software to run as normal user the following change would be required:
 - Connect LED to D10 instead of D18 GPIO PIN
 - set `open_micro_view.mm_microscope_lighy.LED_PIN` to `board.D10` before start()
 - Change following configuration in `/boot/config.txt`:
  - `dtparam=spi=on`
  - `enable_uart=1`
+
+> **Note**  
+> Running the process as a normal user may provoke permission errors while
+> saving, reading or copying pictures. Temperature may also not be available.
 
 ## Installation of OpenMicroView
 Installation script is located in `install/` directory but should be run from
@@ -150,6 +156,3 @@ This software has been tested and validated on the following system versions :
 
 The following system presented issues with the touchscreen:
 - `raspios_oldstable_armhf/2023-05-03` [Linux kernel 5.10.103] [RPi firmware 638c7521ee0c431fafca1e2bd4fd25705b37ea5b]
-
-
-

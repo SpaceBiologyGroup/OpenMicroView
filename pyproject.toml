@@ -1,0 +1,21 @@
+[project]
+name = "OpenMicroView"
+version = "0.8.0"
+description = "GUI for the open source, Raspberry Pi based OpenMicroView Microscope"
+license = "GPL-3.0-only"
+readme = "README.md"
+authors = [
+    "V. Salvadori",
+]
+requires-python = ">=3.7"
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.7",
+    "Development Status :: 4 - Beta",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering"
+]
+
+[project.urls]
+Homepage = "https://github.com/Space-Biology-Group/OpenMicroView"
+Issues = "https://github.com/Space-Biology-Group/OpenMicroView/issues"
