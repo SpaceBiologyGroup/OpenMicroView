@@ -167,6 +167,7 @@ OpenMicroView has been tested and validated on the following system versions :
 | 3B  | raspios_oldstable_armhf | 2019-09-26 | 4.19.75 | `01508e81ec1e918448227ca864616d56c430b46d` |
 | 3B  | raspios_oldstable_armhf | 2021-12-02 | 5.10.63 | `fa45ccf5a4b183ee566b36d74fb4b65bf9358bed` |
 | 3B  | raspios_oldstable_armhf | 2022-01-28 | 5.10.63 | `60f6a26ed5701eec6be5c864dd0db48fe6244fad` |
+| 3B  | raspios_oldstable_armhf | 2022-04-04 | 5.10.103| `910e079df1266036159ce4ea2aaa2ba9976ea3f1` |
 
 
 The following system versions presented issues with the touchscreen, unrelated to the present software:  
