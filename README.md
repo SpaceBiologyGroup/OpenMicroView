@@ -153,9 +153,25 @@ sudo python3 ./start.py
 - If the Screen is not calibrated:
     - Most likely due to newer kernel reason. Investigation on going...
 
-## Notes
-This software has been tested and validated on the following system versions :
-- `raspios_oldstable_armhf/2019-09-26` [Linux kernel 4.19.75]  [RPi firmware 01508e81ec1e918448227ca864616d56c430b46d]
+# Versions
+## Hardware
+The software has been developped, tested and validated to run on a RaspberryPi 3B
 
-The following system presented issues with the touchscreen:
-- `raspios_oldstable_armhf/2023-05-03` [Linux kernel 5.10.103] [RPi firmware 638c7521ee0c431fafca1e2bd4fd25705b37ea5b]
+## Operating System
+[See on RaspberryPi Website](https://downloads.raspberrypi.com/raspios_oldstable_armhf/images/)
+
+OpenMicroView has been tested and validated on the following system versions :
+
+| RPi |      Image              |  Release   | Kernel  |    RPi Firmware Hash     | 
+|-----|-------------------------|------------|---------|--------------------------|
+| 3B  | raspios_oldstable_armhf | 2019-09-26 | 4.19.75 | `01508e81ec1e918448227ca864616d56c430b46d` |
+| 3B  | raspios_oldstable_armhf | 2021-12-02 | 5.10.63 | `fa45ccf5a4b183ee566b36d74fb4b65bf9358bed` |
+| 3B  | raspios_oldstable_armhf | 2022-01-28 | 5.10.63 | `60f6a26ed5701eec6be5c864dd0db48fe6244fad` |
+
+
+The following system versions presented issues with the touchscreen, unrelated to the present software:  
+| RPi |      Image              |  Release   | Kernel  |    RPi Firmware Hash     | 
+|-----|-------------------------|------------|---------|--------------------------|
+| 3B  | raspios_oldstable_armhf | 2023-05-03 | 5.10.103| `638c7521ee0c431fafca1e2bd4fd25705b37ea5b` |
+
+
