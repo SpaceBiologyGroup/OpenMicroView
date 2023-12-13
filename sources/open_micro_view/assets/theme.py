@@ -26,6 +26,8 @@ def configure_style(master) -> ThemedStyle:
     gui_style.configure('config.TButton', font=('Quicksand', 12), background="#FEFEFE", relief=FLAT, padding=3)
     gui_style.configure('time.TButton', font=('Quicksand', 15), background="#FFFFFF", relief=FLAT, padding=5)
     gui_style.configure('del.TButton', font=('Quicksand', 15), background="#FFDDDD", relief=FLAT, padding=2) # delete Button
+    gui_style.configure('shutdown.TButton', font=('Quicksand', 12), background="#FFDDDD", relief=FLAT, padding=3)
+
     # NOTEBOOK
     # gui_style.layout("TNotebook", [])
     gui_style.configure('TNotebook.Tab', font=('Quicksand', 15), background="lightgray", padding=5, bordercolor='#FF0000')
