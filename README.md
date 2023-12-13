@@ -54,7 +54,7 @@ the root directory of the project.
 ### One-liner installation
 You can execute this command, it will do the same as below steps 1, 2, 3 and 4 in a single line.
 ```
-git clone https://github.com/... --depth 1 && cd OpenMicroView && sudo install/install.sh -A
+git clone https://github.com/Space-Biology-Group/OpenMicroView --depth 1 && cd OpenMicroView && sudo install/install.sh -A
 ```
 
 If you prefer to play it safe and control every steps, you can do it step by step as shown below.
@@ -63,7 +63,7 @@ If you prefer to play it safe and control every steps, you can do it step by ste
 
 ```sh
 cd ~/Downloads/
-git clone https://github.com/...
+git clone https://github.com/Space-Biology-Group/OpenMicroView
 ```
 
 ### 2. Install Dependencies
