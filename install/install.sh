@@ -8,7 +8,7 @@ ENTRYPOINT="${INSTALL_DIR}/start.py"
 USERNAME=$(id -nu 1000 || (echo 'pi' && echo 'falling back to "pi" username'>&2))
 SYS_USER='root'
 SYSTEM_DEP_FILE="install/apt-requirements.list"
-PIP_DEP_FILE='install/pip/requirements.txt"
+PIP_DEP_FILE='install/pip/requirements.txt'
 SYSD_FILE="/etc/systemd/system/$SOFT_NAME.service"
 opts=$@
 
