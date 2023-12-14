@@ -1,6 +1,6 @@
 imutils ~= 0.5
 ttkthemes ~= 3.2
-Pillow ~= 9.5
+Pillow ~= 10.1
 adafruit-circuitpython-neopixel ~= 6.3
 adafruit-blinka
 # Prod only
