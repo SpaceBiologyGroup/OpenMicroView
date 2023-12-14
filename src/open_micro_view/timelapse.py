@@ -110,7 +110,7 @@ class Timelapse:
         # END
         self.change_mode('s')
         self.change_value(0)
-        return
+        return None
 
     def init_timelapse_frame(self):
         tab = self.timelapse_frame
@@ -126,11 +126,11 @@ class Timelapse:
                                       style='del.TButton',
                                       command=self.stop_timelapse)
         self.btn['stop'].grid(column=0, row=8, columnspan=2, padx=10, pady=10, sticky='news')
-        return
+        return None
 
     def change_mode(self, mode):
         if self.mode == mode:
-            return
+            return None
         if self.mode is not None:
             self.btn[self.mode].state(["!disabled"])
         self.btn[mode].state(["disabled"])

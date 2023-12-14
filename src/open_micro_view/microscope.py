@@ -2,9 +2,10 @@
 # Copyright (C) 2023 V. Salvadori
 
 import logging
+import sys
 import threading
 from time import sleep
-from tkinter import StringVar, Frame, Tk
+from tkinter import Frame, StringVar, Tk
 
 from .microscope_camera import Camera
 from .microscope_light import Light
@@ -46,4 +47,4 @@ class Microscope():
             self.temperature.set('? ?')
         except RuntimeError:
             logging.error('RuntimeError: Exiting Temperature thread...', exc_info=True)
-            exit()
+            sys.exit()
