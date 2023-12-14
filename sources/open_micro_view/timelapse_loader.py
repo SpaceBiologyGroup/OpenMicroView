@@ -11,14 +11,16 @@ from PIL import Image, ImageTk
 
 IMG_EXTENSIONS = ['jpg', 'jpeg', 'png']
 
+
 class TimelapseLoader:
+    """ Load and play a timelapse """
     def __init__(self, fullpath:str, callback:callable = None):
         self.MAX_W, self.MAX_H = 500, 280
         self.fullpath = fullpath
         self.stop_event = threading.Event()
         self.files = [f for f in os.listdir(self.fullpath) if f.split('.')[-1] in IMG_EXTENSIONS]
         self.files.sort()
-        self.frames_loaded = 0 
+        self.frames_loaded = 0
         self.frames = []
         self.total_frames = len(self.files)
         self.is_ready = False
@@ -29,7 +31,6 @@ class TimelapseLoader:
         self.timelapse_fps = 4
         self.pause_event = threading.Event()
         self.timelapse_increment = 1
-        ## 
         self.tk_player_index = IntVar(0)
         self.tk_n_frames_loaded = IntVar(0)
 
@@ -60,11 +61,11 @@ class TimelapseLoader:
                 logging.debug(f'[{self.frames_loaded + 1}/{self.total_frames}] loading {img}')
                 path = os.path.join(self.fullpath, img)
                 photo:Image = Image.open(path)
-                if ratio == None:
+                if ratio is None:
                     ratio = min(self.MAX_W / photo.width, self.MAX_H / photo.height)
                     h, w = int(photo.height * ratio), int(photo.width * ratio)
                 photo = ImageTk.PhotoImage(photo.resize((w, h), Image.ANTIALIAS))
-                self.check_stop_event() # check not stopped before adding frame to list
+                self.check_stop_event()  # check not stopped before adding frame to list
                 self.frames.append(photo)
                 self.frames_loaded += 1
                 self.update_status()
@@ -92,9 +93,9 @@ class TimelapseLoader:
                     frame.configure(image=img)
                     # frame.image = img
                     last_frame = now
-                else :
+                else:
                     coef = (1, self.timelapse_fps)[self.pause_event.is_set()]
-                    time.sleep(sleep_step * coef )
+                    time.sleep(sleep_step * coef)
         except TclError:
             logging.warn('Impossible to play timelapse: Container was destroyed.', exc_info=True)
         finally:
@@ -105,7 +106,7 @@ class TimelapseLoader:
         self.pause_event.set()
         if update:
             img = self.get_current_frame()
-            self.timelapse_frame.configure(image = img)
+            self.timelapse_frame.configure(image=img)
 
     def get_current_frame(self, increment:int=0):
         v = int(self.tk_player_index.get())
@@ -114,7 +115,6 @@ class TimelapseLoader:
         if v2 != v:
             self.tk_player_index.set(v2)
         return self.frames[v2]
-
 
     def play(self, container:Frame=None) -> bool:
         # Unpause if thread exists
@@ -141,7 +141,7 @@ class TimelapseLoader:
 
     def reset(self):
         self.stop_event.clear()
-        self.frames_loaded = 0 
+        self.frames_loaded = 0
         self.frames = []
         self.total_frames = len(self.files)
         self.is_ready = False

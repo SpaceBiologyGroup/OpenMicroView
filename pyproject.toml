@@ -5,8 +5,8 @@ description = "GUI for the open source, Raspberry Pi based OpenMicroView Microsc
 license = "GPL-3.0-only"
 readme = "README.md"
 authors = [
-    "V. Salvadori",
-]
+        { name="V. Salvadori" }
+    ]
 requires-python = ">=3.7"
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -15,7 +15,20 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Topic :: Scientific/Engineering"
 ]
+dependencies = [
+    "imutils ~= 0.5",
+    "ttkthemes ~= 3.2",
+    "Pillow ~= 9.5",
+    "picamera ~= 1.13",
+    "rpi_ws281x ~= 5.0",
+    "adafruit-circuitpython-neopixel ~= 6.3",
+    "adafruit-blinka"
+]
 
 [project.urls]
 Homepage = "https://github.com/Space-Biology-Group/OpenMicroView"
 Issues = "https://github.com/Space-Biology-Group/OpenMicroView/issues"
+
+[tool.pyright]
+reportMissingModuleSource = "information"
+reportMissingImports = "information"

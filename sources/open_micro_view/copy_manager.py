@@ -27,7 +27,7 @@ class CopyManager():
 
     def isrunning(self) -> bool:
         if self.process:
-            return self.process.poll() == None
+            return self.process.poll() is None
         return False
 
     def execute(self) -> bool:
@@ -48,8 +48,9 @@ class CopyManager():
         if not os.path.isdir(self.dest):
             os.mkdir(self.dest)
         self.size_before_copy = dir_size_bytes(self.dest)
-        logging.info(f'   | size before copy: {self.size_before_copy/1024:.2f} MB')
-        cmd = ['/usr/bin/rsync', '-a',r"--out-format=%l$%f$", '--no-o', '--no-g', '--no-p', self.source, self.dest]
+        logging.info(f'   | size before copy: {self.size_before_copy / 1024:.2f} MB')
+        cmd = ['/usr/bin/rsync', '-a',r"--out-format=%l$%f$",
+               '--no-o', '--no-g', '--no-p', self.source, self.dest]
         with Popen(cmd, stdin=None, stdout=PIPE, stderr=STDOUT) as ps:
             logging.info('   | processing...')
             self.process = ps
@@ -61,12 +62,12 @@ class CopyManager():
         logging.warning("\nProcess ended")
         return True
 
-    def update_status(self, line):
+    def update_status(self, line:str):
         size = filename = None
         try:
             size, filename, _  = line.split('$')
         except ValueError:
-            logging.error(line, exc_info = True)
+            logging.error(line, exc_info=True)
             return None
         if filename in self.transfered_files:
             logging.warning(' + duplicate file')
@@ -74,10 +75,9 @@ class CopyManager():
         self.transfered_size += int(size)
         self.transfered_files.append(filename)
         prct = 100 * (self.transfered_size / self.source_size)
-        data = B_to_readable(self.transfered_size)
         self.percent.set(int(prct))
         self.transfered_size_str.set(B_to_readable(self.transfered_size))
-        self.progress_value.set(self.transfered_size)   
+        self.progress_value.set(self.transfered_size)
 
     def status(self) -> float:
         ''' return None if not running, or percentage executed'''

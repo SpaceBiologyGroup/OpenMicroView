@@ -26,6 +26,7 @@ PREVIEW_MAX_W = 510
 
 
 class Camera:
+    """ OpenMicroView Microscope Camera """
     def __init__(self, root, tab):
         self.vs = None
         self.camera = PiCamera()
@@ -49,7 +50,7 @@ class Camera:
         if (not os.path.isdir(self.getImagePath())):
             os.mkdir(self.getImagePath())
 
-        ## Start The Stream
+        # Start The Stream
         self.startVideo()
 
     def close(self):
@@ -62,7 +63,7 @@ class Camera:
         if (n is not None):
             self.camera.framerate = n
         return self.camera.framerate
-    
+
     def brightness(self, n=None):
         if (n is None):
             self.i_brightness = self.camera.brightness
@@ -71,7 +72,7 @@ class Camera:
             self.camera.brightness = n
             self.i_brightness = self.camera.brightness
         return self.camera.brightness
-    
+
     def contrast(self, n=None):
         if (n is None):
             self.i_contrast = self.camera.contrast
@@ -80,7 +81,7 @@ class Camera:
             self.camera.contrast = n
             self.i_contrast = self.camera.contrast
         return self.camera.contrast
-    
+
     def sharpness(self, n=None):
         if (n is None):
             self.i_sharpness = self.camera.sharpness
@@ -89,7 +90,7 @@ class Camera:
             self.camera.sharpness = n
             self.i_sharpness = self.camera.sharpness
         return self.camera.sharpness
-    
+
     def saturation(self, n=None):
         if (n is None):
             self.i_saturation = self.camera.saturation
@@ -98,7 +99,7 @@ class Camera:
             self.camera.saturation = n
             self.i_saturation = self.camera.saturation
         return self.camera.saturation
-    
+
     def videoLoop(self, n, q):
         preset_ratio = self.camera.resolution[1] / self.camera.resolution[0]
         time_frame = None
@@ -111,7 +112,7 @@ class Camera:
             self.restartEvent.clear()
             logging.debug("Start video loop.")
             try:
-                while (not q.empty()) :
+                while (not q.empty()):
                     res = q.get()
                     self.camera.resolution = res
                     preset_ratio = self.camera.resolution[1] / self.camera.resolution[0]
@@ -121,24 +122,25 @@ class Camera:
                 img_w = 240
                 img_h = round(img_w * preset_ratio)
                 stream = PiRGBArray(self.camera, size=(img_w, img_h))
-                if self.panel: self.panel.destroy()
+                if self.panel:
+                    self.panel.destroy()
                 self.panel = None
                 logging.info('Start Capture...')
                 for frame in self.camera.capture_continuous(stream,
                                                             format='rgb',
                                                             use_video_port=True,
-                                                            resize=(img_w, img_h) ):
+                                                            resize=(img_w, img_h)):
                     stream.truncate()
                     stream.seek(0)
                     self.image = frame.array
                     image = Image.fromarray(self.image)
                     max_h = PREVIEW_MAX_H
                     max_w = PREVIEW_MAX_W
-                    ratio = min(max_w / image.width, max_h / image.height) 
+                    ratio = min(max_w / image.width, max_h / image.height)
                     width = round(image.width * ratio)
                     height = round(image.height * ratio)
                     image = ImageTk.PhotoImage(image.resize((width, height), Image.ANTIALIAS))
-                    
+
                     if self.panel is None:
                         self.panel = Label(self.tab, image=image)
                         self.panel.image = image
@@ -150,7 +152,7 @@ class Camera:
                     time_previous = time_frame
                     time_frame = time.monotonic()
                     if (time_previous is not None):
-                        curr_fps = round(1/(time_frame-time_previous))
+                        curr_fps = round(1 / (time_frame - time_previous))
                         fps_list[index] = curr_fps
                         self.i_fps.set(round(mean(tuple(fps_list))))
                         index = (index + 1) % 10
@@ -167,11 +169,11 @@ class Camera:
     def stopVideo(self):
         logging.info('Stopping Video...')
         self.stopEvent.set()
-    
+
     def restartVideo(self):
         logging.info('Restarting Video...')
         self.restartEvent.set()
-    
+
     def startVideo(self):
         sleep(0.2)
         logging.debug(f'Threads : {threading.active_count()}')
@@ -190,18 +192,18 @@ class Camera:
 
     def getImagePath(self):
         return os.path.join(self.outputPath, PICTURE_FOLDER_NAME)
-    
+
     def takeSnapshot(self):
         ts = datetime.datetime.now()
         filename = f"{ts.strftime(r'%Y-%m-%d_%H-%M-%S')}.jpg"
         p = os.path.join(self.getImagePath(), filename)
         self.camera.capture(p, 'jpeg')
         logging.info(f"Picture '{filename}' saved.")
-        ## Display the saved picture instead of Live video.
+        # Display the saved picture instead of Live video.
         sleep(0.2)
         photo = Image.open(p)
         max_w, max_h = 515, 330
-        ratio = min(max_w/photo.width, max_h/photo.height)
+        ratio = min(max_w / photo.width, max_h / photo.height)
         height = int(photo.height * ratio)
         width = int(photo.width * ratio)
         logging.debug(f"Resized snapshot: {width}x{height}")
@@ -210,18 +212,18 @@ class Camera:
         if (self.snapshotFrame is not None):
             self.snapshotFrame.destroy()
             self.snapshotFrame = None
-        
+
         self.snapshotFrame = Frame(self.tab, bg='white')
         self.snapshotFrame.grid_columnconfigure(0, weight=1)
         label = Label(self.snapshotFrame, image=photo, bg='white')
         label.image = photo
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=5, sticky='n')
         close = ttk.Button(self.snapshotFrame, text="Close Preview",
-                           style='close.TButton', 
+                           style='close.TButton',
                            command=self.closeSnapshotPreview)
         close.grid(row=1, column=0, sticky='nsew', padx=5)
         trash = PhotoImage(data=TRASH_ICON)
-        del_btn = Button(self.snapshotFrame, relief=FLAT, image=trash, text="", 
+        del_btn = Button(self.snapshotFrame, relief=FLAT, image=trash, text="",
                          bg='#FFDDDD', highlightcolor='#FFAAAA', width=40,
                          command=partial(self.deleteSnapshot, p))
         del_btn.image = trash
@@ -229,7 +231,7 @@ class Camera:
         # Remove live stream
         self.panel.pack_forget()
         # Display Snapshot frame
-        self.snapshotFrame.pack(padx=(int(max_w-width)/2), pady=0, fill='both')
+        self.snapshotFrame.pack(padx=(int(max_w - width) / 2), pady=0, fill='both')
 
     def deleteSnapshot(self, filename):
         self.closeSnapshotPreview()
@@ -241,8 +243,8 @@ class Camera:
             create_popup(text=f'Error {e.errno}: Impossible to delete the file.', close_btn='Cancel')
             logging.error(f'Unable to remove file {filename}', exc_info=True)
             pass
-        return False    
-        
+        return False
+
     def closeSnapshotPreview(self):
         self.snapshotFrame.destroy()
         self.snapshotFrame = None

@@ -46,7 +46,6 @@ class ImageBrowser():
         self.tk_filesize:StringVar = StringVar()
         self.tk_file_index:StringVar = StringVar()
 
-
     def quit(self) -> None:
         if self.timelapse_loader:
             self.timelapse_loader.quit()
@@ -66,10 +65,10 @@ class ImageBrowser():
         return t2 - t1
 
     def start(self):
-        logging.info(f'Starting picture browser')
+        logging.info('Starting picture browser')
         try:
-            self.img_list = [f for f in os.listdir(self.path) if f.split('.')[-1] in IMG_EXTENSIONS
-                                                                or f[0:3] == 'TL_']
+            self.img_list = [f for f in os.listdir(self.path)
+                             if f.split('.')[-1] in IMG_EXTENSIONS or f[0:3] == 'TL_']
             self.img_list = sorted(self.img_list,
                                    key=cmp_to_key(self.compare_file_creation_date))
         except OSError as e:
@@ -90,7 +89,7 @@ class ImageBrowser():
         # Image Frame
         self.image_frame = Frame(self.frame, borderwidth=2, relief=GROOVE, bg='#FFFEFD')
         self.image_frame.pack(padx=5, pady=5, side='top', expand=True)
-    
+
         # Info Row
         info_row = Frame(self.frame, background='white', borderwidth=2)
         info_row.pack(fill='x', side='bottom')
@@ -105,13 +104,12 @@ class ImageBrowser():
         # Delete Button
         trash = PhotoImage(data=TRASH_ICON)
         text = 'Are you sure you want to delete this picture'
-        del_func = lambda:create_popup(text=text,
-                                       close_btn='Cancel',
-                                       accept_btn='Delete',
-                                       accept_callback=self.delete_picture)
-        del_btn = Button(info_row, image=trash, text="", 
+        del_btn = Button(info_row, image=trash, text="",
                          bg='#FFDDDD', highlightcolor='#FFAAAA', width=40,
-                         command=del_func)
+                         command=lambda:create_popup(text=text,
+                                                     close_btn='Cancel',
+                                                     accept_btn='Delete',
+                                                     accept_callback=self.delete_picture))
         del_btn.image = trash
         del_btn.grid(row=1, column=0, padx=5, sticky='news')
 
@@ -134,7 +132,6 @@ class ImageBrowser():
 
         self.update_picture(0)
         return self.frame
-
 
     def delete_picture(self):
         try:
@@ -163,14 +160,14 @@ class ImageBrowser():
         frame.grid_columnconfigure(1, weight=1)
         frame.grid_rowconfigure([1, 2], weight=1)
         self.timelapse_loader = TimelapseLoader(dir, self.display_timelapse)
-        text = f'The timelapse is being loaded...'
+        text = 'The timelapse is being loaded...'
         ttk.Label(frame, text=text).grid(row=1, column=1)
         progressbar = ttk.Progressbar(frame,
                                       maximum=self.timelapse_loader.total_frames,
                                       value=0,
-                                      variable=self.timelapse_loader.tk_n_frames_loaded) 
+                                      variable=self.timelapse_loader.tk_n_frames_loaded)
         progressbar.grid(row=2, column=1)
-        
+
         cancel_btn = ttk.Button(frame, text="Cancel", style='del.TButton',
                                 command=self.cancel_timelapse)
         cancel_btn.grid(row=3, column=1, sticky='NS', ipadx=50, pady=10)
@@ -186,30 +183,29 @@ class ImageBrowser():
         timelapse_toolbar.pack(side='bottom', fill='x', pady=5)
         timelapse_toolbar.grid_columnconfigure(list(range(10)), weight=1)
 
-        icon_Button(timelapse_toolbar, PLAY_ICON, 
-                    style='config.TButton', 
+        icon_Button(timelapse_toolbar, PLAY_ICON,
+                    style='config.TButton',
                     command=self.timelapse_loader.play
                     ).grid(column=0, row=0, sticky='news', padx=5)
 
-        icon_Button(timelapse_toolbar, PAUSE_ICON, 
-                    style='config.TButton', 
+        icon_Button(timelapse_toolbar, PAUSE_ICON,
+                    style='config.TButton',
                     command=self.timelapse_loader.pause
                     ).grid(column=1, row=0, sticky='news', padx=5)
-        ttk.Scale(timelapse_toolbar, 
-                   from_=0, to=self.timelapse_loader.total_frames-1,
-                   variable=self.timelapse_loader.tk_player_index, 
-                   command=(lambda v: self.timelapse_loader.pause(True))
-                   ).grid(column=2, row=0, columnspan=8, sticky='news', padx=5)
-        
+        ttk.Scale(timelapse_toolbar,
+                  from_=0, to=self.timelapse_loader.total_frames - 1,
+                  variable=self.timelapse_loader.tk_player_index,
+                  command=(lambda v: self.timelapse_loader.pause(True))
+                  ).grid(column=2, row=0, columnspan=8, sticky='news', padx=5)
+
         self.timelapse_loader.play(self.current_image)
 
     def cancel_timelapse(self):
         self.timelapse_loader.quit()
         self.prompt_timelapse()
 
-
     def prompt_timelapse(self):
-        dirname =  self.img_list[self.current_index]
+        dirname = self.img_list[self.current_index]
         fullpath = os.path.join(self.path, dirname)
         size = dir_size_bytes(fullpath)
         self.clear_picture_frame()
@@ -217,15 +213,15 @@ class ImageBrowser():
         frame.pack(fill='both', expand=True, padx=20, pady=30)
         self.current_image = frame
         # Show first frame from the timelapse
-        img = Label(frame, text='Loading preview...', 
+        img = Label(frame, text='Loading preview...',
                     background='white', foreground='grey', padx=2, pady=2)
         img.pack(side='top', expand=True, pady=5)
-        
+
         # y = 0.3628x + 1.9867
-        estimation =  int(0.36 * B_to_MB(size) + 1.98) # Seconds
+        estimation = int(0.36 * B_to_MB(size) + 1.98)  # Seconds
         estimation = seconds_to_readable(estimation)
         text = (f'Do you want to load the timelapse {dirname} of size {B_to_readable(size)} ?\n'
-                +f'This operation may take some time (ETA: ~ {estimation}).')
+                + f'This operation may take some time (ETA: ~ {estimation}).')
         ttk.Label(frame, text=text, justify='center').pack(expand=True, pady=5)
         load_tl = ttk.Button(frame, text="Load Timelapse", style='config.TButton',
                              command=partial(self.load_timelapse, fullpath))
@@ -250,8 +246,6 @@ class ImageBrowser():
         except TclError:
             logging.error("prompt_timelapse: Frame was destroyed.")
 
-        
-
     def update_picture(self, index:int, force:bool=False):
         if self.timelapse_loader:
             self.timelapse_loader.quit()
@@ -260,14 +254,14 @@ class ImageBrowser():
             create_popup(text="There is no more picture to browse.",
                          accept_btn='Close browser', accept_callback=self.quit)
         # Ensure index is valid
-        index = min(max(index, 0), len(self.img_list)-1)
+        index = min(max(index, 0), len(self.img_list) - 1)
         if not force and index == self.current_index:
             return None
         self.current_index = index
         # Retrieve image from index
         filename = self.img_list[index]
         self.current_image_path = os.path.join(self.path, filename)
-        
+
         # update Info
         file_size_bytes = 0
         if os.path.isfile(self.current_image_path):
@@ -276,7 +270,7 @@ class ImageBrowser():
             file_size_bytes = dir_size_bytes(self.current_image_path)
         self.tk_filename.set(filename)
         self.tk_filesize.set(B_to_readable(file_size_bytes))
-        self.tk_file_info.set( filename + " - " + B_to_readable(file_size_bytes))
+        self.tk_file_info.set(filename + " - " + B_to_readable(file_size_bytes))
         self.tk_file_index.set(f"{self.current_index + 1}/{len(self.img_list)}")
 
         if filename[0:3] == 'TL_' and os.path.isdir(self.current_image_path):
@@ -303,13 +297,13 @@ class ImageBrowser():
             self.current_image.pack(fill='both')
         except OSError as e:
             self.clear_picture_frame()
-            self.current_image = Label(self.image_frame, background='white', 
+            self.current_image = Label(self.image_frame, background='white',
                                        text=f'Error while opening {filename}:\n{str(e)}')
             self.current_image.pack(fill='both')
         return None
 
     def next_pic(self, n:int=1):
         self.update_picture(self.current_index + n)
-    
+
     def prev_pic(self, n:int=1):
         self.update_picture(self.current_index - n)
