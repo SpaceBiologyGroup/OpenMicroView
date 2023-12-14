@@ -1,6 +1,12 @@
 # OpenMicroView: GUI for the open source, Raspberry Pi based namesake Microscope
 # Copyright (C) 2023 V. Salvadori
 # Icons Attributions: Flaticon.com
+#
+# -- pylint specific config --
+# pylint: disable=line-too-long
+
+
+from tkinter import Frame, PhotoImage, ttk
 
 WHITE_DOT       = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAABGdBTUEAALGPC/xhBQAAAAJiS0dEAP+Hj8y/AAAB3klEQVQ4y5VSS24TQRB91dO2QGzACBZIzgpNnEjkAj6Ad0hxTkDILVggFLHJHQg3IBI7H8AHGCGIGWWVFbbACCEUuz/1WIwZ99gb8kp6Xa9U3V3dVYIaEWhJTwboI0cHwBwlxhxxAp9hAwSFu3qmV7oklcoVO73ime5SmKYHeKtDLVSVSk1R6UKH3oYkPQsnYRoZNGrUyA1mZJiGE58FAFiC8Ed+6unpdctYr1N/5OEBB9dzhaNTR6dbxsQrXM/BBMtjHhCsnl49v2asNXjA42iN2eMhQRK1MeGmPpQ9iwF2AAhAVGvzuxuRHQws+2hXuRCsdiWQRqSNvmWO2yC37GydVPnrSKo7Vqsi04uJZiTRhOH8NhVxbrQkCMi6D5CEN7SWxo/pIOS6BjLhVAudHxs3CteK/7Nw7Ubmx6W/0Kr9abebXQZBUfiL+aXphOW5LwgKhKBQIE2uPMIXy/MHwfxBd7I49bP6RCoTxsqDny1Ou5MbCFDid/boRftt6/FqnIRMWYTwM/fq5/t78WnVta+4sfeft1+3npnNeRJA6T+5N78+3g35ejq/4Ls8yVsv7TDrmva/ASXUx+vwwb37Vj7kfj2hK3xGbN3p2YHpm1w6AOcs4ziOFpPM79dZfwFnceE3TfG5jgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMC0wMy0xMFQxNjoyNDo0OCswMTowMEsYK/AAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjAtMDMtMTBUMTY6MjQ6NDgrMDE6MDA6RZNMAAAAAElFTkSuQmCC'
 RED_DOT         = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABI1BMVEUAAADuUlLvUlLwU1PvUlLvUlLwU1PvUlLwU1PvUlLuUVHuUVHvUlLvUlLvUlLtUFDtUFDuUVHtUFDtUFDtUFDrTk7sT0/sT0/qTU3qTU3rTk7qTU3qTU3oS0vpTEzpTEzpS0voSkroS0vnSkrnSkrmSEjmSUnnSUnmSEjlSEjlSEjjR0fkR0fhRUXjRkbkRkbeRETiRUXfRETXQ0PhRETYQ0PPQUHdQkLgQ0PhQ0PeQkLWQUHfQkLgQkLXQUHNPz/ZQEDeQUHNPj7aPz/dQEDeQEDOPj7YPj7dPz/KPDzTPT3bPj7cPj7JOzvMOzvTPDzZPT3bPT3HOjrIOjrMOjrPOjrQOzvPOjrNOjrtUFDqTU3pS0vmSEjjRUXfQUHdPz////870dXiAAAAWXRSTlMAEWKlz+TkpGIREpD1/pBE5/5a+v5E+v4S5/6Q/hH1/hFi/qT+0P7+z+T+5P7P/v6l/qVi/mIR9f7+9ZD+/pAS5/5E+v7+Wvr+ROf+/hKQ9f7+EWKlz+TQpKd+bAMAAAABYktHRGDFt3wQAAABD0lEQVQoz22SeVsBcRDHp9IlRSwRKZRClA6pFMvGIkeU2g77/t9Fc6yo9vM95nlm//vNAghz8wuOxSXH8soqzOJcc61buDac073bszmDxz3Ze32GoiiGZUPxeWXvD2z9IeCnfTC0/Y9QED+EI++oCIXNFQbYie7aEN2DWDz+gaIWy4xBYt+WBBwkk4coarHMI0il058oarHMFGSObclANpc7QVGLZWbhNJ//QlGLZZ7B+YUtl1C4Kl6jihQ2100B4LZ0hypR2Fz3+FblylgdqyqFTVUp0/NWa9qDplHYWLWqHKTeMHVdNy2beqM+OWGz1X78od1qTo/e6fb6T0y/1+38+k8Gw+eX0ej1bTiwFt/6oluydzuNcwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMC0wMy0xMFQxNjozOTozNyswMTowMIPlBnAAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjAtMDMtMTBUMTY6Mzk6MzcrMDE6MDDyuL7MAAAAAElFTkSuQmCC'
@@ -19,19 +25,17 @@ POWER_ICON      = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxA
 PAUSE_ICON      = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxAAAAsQHGLUmNAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAMhJREFUSInt1UFOAkEQheEPWAgkegGQYyBxazgK6un0FgbPAeyRFS5AF9OTFO0QZuGK9Esmqa5+/f6ZWVRTdEGdM/1HjFL9g0+sMs8E05CxwUcb6GsKjc9XAMIYuwbfcx7WbQA84S29WQdD3OEheKa4xSD43jFvA+jiO6zruhd6vWwP9k15TYB/VQEUQAFcK+CIm7Cu60PoHbI96KezF/Xi7xjeOh3XI9UIz32LPOzchTPDfaqPqgtnnXnGqhFe/4UVlm2+oOhEv8EGKl5amSAYAAAAAElFTkSuQmCC'
 PLAY_ICON       = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxAAAAsQHGLUmNAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAARJJREFUSInF1b0uhEEUxvGfdytCVFoS4iqIBJGIQk8tChfgDjYhNAoSiUsQ10CiUSi38BGyhQsgiMJXMftmd4XNzr7zxtNMJjOZ/3lyzpzDP2gZx6hiKPXji/jAZWO9x1xKwDZekWEGt/jEAQZTAHbx1LLvx5amm/nUgFxTuBbcHCrg5i8ADGh301NuOgFyTeNGj266ARDc7DUgd5hNDci1gLoIN7EAGMYRvlDDSOthFvnYb3rEGpYwio3UgFx1vAtOkgIq2BTaywP2O12OzcEEzpSQ5AzreFFCmUZH3S0gj/pZCa1iHKdKaHZ92qMu3K53NAfOJM4lHjgrwke5ECqk8Mis/NjX8IYxnGAVV0UApesbtIZTKiKpGvAAAAAASUVORK5CYII='
 
-from tkinter import Image, PhotoImage, ttk, Frame
-from PIL import ImageTk
 
-def icon(ico:str, parent:Frame=None, size:tuple=(24,24), as_label:bool=True):
+def icon(ico:str, parent:Frame=None, as_label:bool=True):
     img = PhotoImage(data=ico)
     if as_label:
-        label = ttk.Label(parent, image=img )
+        label = ttk.Label(parent, image=img)
         label.image = img
         img = label
     return img
 
 
-def icon_Button(parent:Frame, ico, **kwargs) -> ttk.Button:
+def icon_button(parent:Frame, ico, **kwargs) -> ttk.Button:
     img = icon(ico, as_label=False)
     b:ttk.Button = ttk.Button(parent, image=img, **kwargs)
     b.image = img

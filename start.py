@@ -14,9 +14,14 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from sources import open_micro_view
 import logging
 
-fmt="OpenMicroView.%(threadName)-14s: [%(levelname)-7s][%(module)s:%(funcName)s]  %(message)s"
+# Configure log format
+fmt = "OpenMicroView.%(threadName)-14s: [%(levelname)-7s][%(module)s:%(funcName)s]  %(message)s"
 logging.basicConfig(level=logging.INFO, format=fmt)
-open_micro_view.start()
+
+from src import open_micro_view
+
+# Start interface
+if __name__ == '__main__':
+    open_micro_view.start()

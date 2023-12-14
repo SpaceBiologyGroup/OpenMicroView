@@ -1,0 +1,5 @@
+-r common.txt
+
+# Prod
+picamera ~= 1.13
+rpi_ws281x ~= 5.0
