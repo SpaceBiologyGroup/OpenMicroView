@@ -5,7 +5,7 @@ import ctypes
 import ctypes.util
 import logging
 import os
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, run
 from tkinter import FLAT, Frame, IntVar, StringVar, ttk
 from typing import Callable
 
@@ -97,3 +97,18 @@ def dir_size_bytes(dir:str) -> int:
         logging.error(f"{cmd}.stderr: {stderr}")
         return 0
     return int(size)
+
+
+def shutdown(reboot:bool=False) -> bool:
+    logging.warning('System shutdown triggered.', exc_info=True)
+    cmd = ['shutdown']
+    if reboot:
+        cmd.append('-r')
+    cmd.append('now')
+    logging.info(f'Shutdown command : {str(cmd)}' )
+    process = run(cmd, timeout=3, capture_output=True)
+    if process.stdout:
+        logging.warning(process.stdout.decode('utf8'))
+    if process.stderr:
+        logging.error(process.stderr.decode('utf8'))
+    return (process.returncode == 0)

@@ -10,10 +10,12 @@ from math import ceil, gcd
 from time import sleep
 from tkinter import HORIZONTAL, Frame, IntVar, StringVar, X, ttk
 
+from .assets.icons import POWER_ICON, TRASH_ICON, icon_Button
 from .copy_manager import CopyManager
 from .image_browser import ImageBrowser
 from .utils import (B_to_readable, create_popup, create_progress_popup,
-                    dir_size_bytes, umount2)
+                    dir_size_bytes, shutdown, umount2)
+
 
 CONFIG_FILE = './config.json'
 MEDIA_FOLDER = '/media/'
@@ -77,6 +79,14 @@ class Settings:
         ttk.Label(frame, text="Images are saved in:").grid(column=0, row=5, sticky='sw')
         ttk.Label(frame, text=self.images_path).grid(column=0, row=6, columnspan=2, sticky='nw')
 
+        # System shutdown
+        # shutdown_btn = ttk.Button(frame, image=icon(POWER_ICON),
+        shutdown_btn = icon_Button(frame, POWER_ICON,
+                                  style='shutdown.TButton',
+                                  command=self.confirm_shutdown)
+        shutdown_btn.grid(column=0, row=8, padx=10, pady=10, ipadx=10, ipady=5, sticky='sw')
+
+        # License Text
         lic = ttk.Label(frame, text=LICENSE)
         lic.bind('<Button-1>', self.show_license)
         lic.grid(column=0, row=9, columnspan=2, sticky='sw')
@@ -305,6 +315,20 @@ class Settings:
         else:
             self.cp_btn.state(['disabled'])
             self.ejct_btn.state(['disabled'])
+
+    ''' SHUTDOWN RASPBERRY-PI '''
+    def confirm_shutdown(self):
+        popup = create_popup(close_btn="Cancel",
+                             cols=3, 
+                             text="Are you sure you want to shutdown the whole system ?")
+
+        callback = lambda r: (popup.destroy(),
+                            self.light.off(),
+                            shutdown(reboot=r) or create_popup(text="Error: Impossible to shutdown", close_btn='Ok'))
+        acc_btn = ttk.Button(popup, text='Shutdown', style='shutdown.TButton', command=partial(callback, False))
+        acc_btn.grid(row=1, column=1, sticky='NS', ipadx=20, pady=10)
+        acc_btn = ttk.Button(popup, text='Reboot', style='shutdown.TButton', command=partial(callback, True))
+        acc_btn.grid(row=1, column=2, sticky='NS', ipadx=20, pady=10)
 
     ''' DELETE PICTURES '''
     def confirm_delete_pictures(self):
