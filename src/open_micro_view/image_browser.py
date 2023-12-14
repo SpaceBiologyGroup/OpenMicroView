@@ -227,6 +227,12 @@ class ImageBrowser():
                              command=partial(self.load_timelapse, fullpath))
         load_tl.pack(side='bottom', expand=True, pady=10)
 
+        try:
+            n_frames = f' - {len(os.listdir(fullpath))} frames'
+            self.tk_file_info.set(self.tk_file_info.get() + n_frames)
+        except OSError:
+            logging.error("Impossible to list files in %s", fullpath, exc_info=True)
+
         frame.update()
         try:
             # Find the first image in the directory
