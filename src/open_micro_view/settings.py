@@ -28,7 +28,7 @@ class Settings:
     def __init__(self, microscope, app):
         self.microscope = microscope
         self.camera     = microscope.camera
-        self.images_path = self.camera.getImagePath()
+        self.images_path = self.camera.get_image_path()
         self.light      = microscope.light
         self.frame      = None
         self.app        = app
@@ -84,7 +84,7 @@ class Settings:
         res_selector.grid(column=1, columnspan=2, row=2, sticky='nsew')
 
         # Snapshot Path
-        self.images_path = self.camera.getImagePath()
+        self.images_path = self.camera.get_image_path()
         ttk.Label(frame, text="Images are saved in:").grid(column=0, row=5, sticky='sw')
         ttk.Label(frame, text=self.images_path).grid(column=0, row=6, columnspan=2, sticky='nw')
 

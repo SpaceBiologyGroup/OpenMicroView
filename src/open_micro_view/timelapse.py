@@ -224,7 +224,7 @@ class Timelapse:
         logging.debug('timelapse loop : %s', name)
         begin = datetime.now()
         now = begin
-        path = self.camera.getImagePath()
+        path = self.camera.get_image_path()
         path = os.path.join(path, f"TL_{begin.strftime(r'%Y-%m-%d_%H-%M-%S')}")
         os.mkdir(path)
         remains = self.auto_stop

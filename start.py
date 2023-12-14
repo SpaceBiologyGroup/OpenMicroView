@@ -20,7 +20,7 @@ import logging
 fmt = "OpenMicroView.%(threadName)-14s: [%(levelname)-7s][%(module)s:%(funcName)s]  %(message)s"
 logging.basicConfig(level=logging.INFO, format=fmt)
 
-from sources import open_micro_view
+from src import open_micro_view
 
 # Start interface
 if __name__ == '__main__':
