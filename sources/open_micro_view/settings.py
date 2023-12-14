@@ -10,7 +10,7 @@ from time import sleep
 from tkinter import HORIZONTAL, Frame, IntVar, StringVar, X, ttk
 import logging
 
-from .assets.icons import TRASH_ICON
+from .assets.icons import POWER_ICON, TRASH_ICON, icon_Button
 from .copy_manager import CopyManager
 from .image_browser import ImageBrowser
 from .utils import (B_to_readable, create_popup, create_progress_popup,
@@ -81,7 +81,8 @@ class Settings:
         ttk.Label(frame, text=self.images_path).grid(column=0, row=6, columnspan=2, sticky='nw')
 
         # System shutdown
-        shutdown_btn = ttk.Button(frame, text="Shutdown",
+        # shutdown_btn = ttk.Button(frame, image=icon(POWER_ICON),
+        shutdown_btn = icon_Button(frame, POWER_ICON,
                                   style='shutdown.TButton',
                                   command=self.confirm_shutdown)
         shutdown_btn.grid(column=0, row=8, padx=10, pady=10, ipadx=10, ipady=5, sticky='sw')
