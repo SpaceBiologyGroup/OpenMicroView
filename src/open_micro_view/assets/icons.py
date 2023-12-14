@@ -1,6 +1,10 @@
 # OpenMicroView: GUI for the open source, Raspberry Pi based namesake Microscope
 # Copyright (C) 2023 V. Salvadori
 # Icons Attributions: Flaticon.com
+#
+# -- pylint specific config --
+# pylint: disable=line-too-long
+
 
 from tkinter import Frame, PhotoImage, ttk
 
@@ -22,7 +26,7 @@ PAUSE_ICON      = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxA
 PLAY_ICON       = 'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxAAAAsQHGLUmNAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAARJJREFUSInF1b0uhEEUxvGfdytCVFoS4iqIBJGIQk8tChfgDjYhNAoSiUsQ10CiUSi38BGyhQsgiMJXMftmd4XNzr7zxtNMJjOZ/3lyzpzDP2gZx6hiKPXji/jAZWO9x1xKwDZekWEGt/jEAQZTAHbx1LLvx5amm/nUgFxTuBbcHCrg5i8ADGh301NuOgFyTeNGj266ARDc7DUgd5hNDci1gLoIN7EAGMYRvlDDSOthFvnYb3rEGpYwio3UgFx1vAtOkgIq2BTaywP2O12OzcEEzpSQ5AzreFFCmUZH3S0gj/pZCa1iHKdKaHZ92qMu3K53NAfOJM4lHjgrwke5ECqk8Mis/NjX8IYxnGAVV0UApesbtIZTKiKpGvAAAAAASUVORK5CYII='
 
 
-def icon(ico:str, parent:Frame=None, size:tuple=(24,24), as_label:bool=True):
+def icon(ico:str, parent:Frame=None, as_label:bool=True):
     img = PhotoImage(data=ico)
     if as_label:
         label = ttk.Label(parent, image=img)
@@ -31,7 +35,7 @@ def icon(ico:str, parent:Frame=None, size:tuple=(24,24), as_label:bool=True):
     return img
 
 
-def icon_Button(parent:Frame, ico, **kwargs) -> ttk.Button:
+def icon_button(parent:Frame, ico, **kwargs) -> ttk.Button:
     img = icon(ico, as_label=False)
     b:ttk.Button = ttk.Button(parent, image=img, **kwargs)
     b.image = img

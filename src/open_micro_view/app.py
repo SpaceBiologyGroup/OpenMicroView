@@ -62,11 +62,11 @@ class App(Frame):
         # Setup Settings Frame and Init Settings Panel
         self.settings = Settings(self.microscope, self)
         self.settings_frame = Frame(self, bg='white', padx=10, pady=10, relief=FLAT)
-        self.settings.initPanel(self.settings_frame)
+        self.settings.init_panel(self.settings_frame)
 
         # Setup Timelapse Tab
         self.timelapse = Timelapse(self.microscope, self)
-        self.timelapse.initTimelapseTab(self.tab3)
+        self.timelapse.init_timelapse_tab(self.tab3)
 
         # Display Informations
         info_frame = Frame(self.main_frame, bg='white', padx=10, pady=10)
@@ -90,7 +90,7 @@ class App(Frame):
         info_frame.grid_columnconfigure(20, weight=1)
 
         # Browse Pictures Button
-        start_img_browser = ImageBrowser(path=self.microscope.camera.getImagePath()).start
+        start_img_browser = ImageBrowser(path=self.microscope.camera.get_image_path()).start
         browse_btn = ttk.Button(info_frame,
                                 text="Browse Pictures",
                                 style='config.TButton',
@@ -155,7 +155,7 @@ class App(Frame):
                             variable=self.microscope.light.brightness,
                             orient=HORIZONTAL,
                             command=self.set_brightness)
-        self.br.set(self.microscope.light.getBrightness())
+        self.br.set(self.microscope.light.get_brightness())
         self.br.grid(row=2, column=1, sticky='we', padx=10, pady=10)
 
         ttk.Separator(tab, orient=HORIZONTAL).grid(row=3, columnspan=2, sticky="ew", padx=15, pady=2)
@@ -165,8 +165,8 @@ class App(Frame):
             sc = ttk.Scale(tab, from_=0, to=255,
                            variable=self.microscope.light.color[c],
                            orient=HORIZONTAL,
-                           command=partial(self.microscope.light.setColor, c))
-            sc.set(self.microscope.light.getColor(c))
+                           command=partial(self.microscope.light.set_color, c))
+            sc.set(self.microscope.light.get_color(c))
             sc.grid(row=4 + i, column=1, sticky='we', padx=10, pady=10)
             icon(icons[i], tab).grid(row=i + 4, column=0, sticky='e')
 
@@ -181,7 +181,7 @@ class App(Frame):
         """
         tab.grid_columnconfigure(1, weight=3)
         ttk.Button(tab, text="Capture Image",
-                   command=self.microscope.camera.takeSnapshot).grid(row=0, columnspan=2, pady=10,
+                   command=self.microscope.camera.take_snapshot).grid(row=0, columnspan=2, pady=10,
                                                                      padx=10, sticky='news')
         icon(COLOR_ICON, tab).grid(row=7, column=0, sticky='e')
         icon(CONTRAST_ICON, tab).grid(row=5, column=0, sticky='e')
@@ -219,13 +219,13 @@ class App(Frame):
     def show_settings(self):
         """Show settings frame, hide main frame """
         self.show_fullframe(pack=self.settings_frame, unpack=self.main_frame)
-        self.microscope.camera.stopVideo()
+        self.microscope.camera.stop_video()
         self.settings.update_stats()
 
     def hide_settings(self):
         """Hide settings frame, show main frame """
         self.show_fullframe(pack=self.main_frame, unpack=self.settings_frame)
-        self.microscope.camera.startVideo()
+        self.microscope.camera.start_video()
 
     # Needed by subclass Timelapse
     def timelapse_started(self):
@@ -240,14 +240,14 @@ class App(Frame):
 
     # Update Button Light
     def update_text_brightness(self):
-        br = self.microscope.light.getBrightness()
+        br = self.microscope.light.get_brightness()
         self.toggler.set(f"Switch {'OFF' if br > 0 else 'ON'}")
 
     # Toggle Light ON/OFF
     def light_toggle(self):
         self.microscope.light.toggle()
         self.update_text_brightness()
-        self.br.set(int(self.microscope.light.getBrightness() * 100))
+        self.br.set(int(self.microscope.light.get_brightness() * 100))
 
     def set_brightness(self, n):
         self.microscope.light.set_brightness(n)

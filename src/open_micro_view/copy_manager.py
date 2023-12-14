@@ -11,6 +11,7 @@ from .utils import B_to_readable, dir_size_bytes
 
 
 class CopyManager():
+    """ Manage copy between source and dest """
     def __init__(self):
         self.source:str = None
         self.dest:str = None
@@ -48,7 +49,7 @@ class CopyManager():
         if not os.path.isdir(self.dest):
             os.mkdir(self.dest)
         self.size_before_copy = dir_size_bytes(self.dest)
-        logging.info(f'   | size before copy: {self.size_before_copy / 1024:.2f} MB')
+        logging.info('   | size before copy: %.2f MB', self.size_before_copy / 1024)
         cmd = ['/usr/bin/rsync', '-a',r"--out-format=%l$%f$",
                '--no-o', '--no-g', '--no-p', self.source, self.dest]
         with Popen(cmd, stdin=None, stdout=PIPE, stderr=STDOUT) as ps:

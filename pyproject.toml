@@ -1,12 +1,17 @@
 [project]
-name = "OpenMicroView"
-version = "0.8.0"
+name = "openmicroview"
+version = "0.8.1"
 description = "GUI for the open source, Raspberry Pi based OpenMicroView Microscope"
-license = "GPL-3.0-only"
+license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
         { name="V. Salvadori" }
     ]
+
+maintainers = [
+  { name = "Space Biology Group" }
+]
+
 requires-python = ">=3.7"
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -16,14 +21,16 @@ classifiers = [
     "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-    "imutils ~= 0.5",
-    "ttkthemes ~= 3.2",
-    "Pillow ~= 9.5",
-    "picamera ~= 1.13",
-    "rpi_ws281x ~= 5.0",
-    "adafruit-circuitpython-neopixel ~= 6.3",
+    "imutils",
+    "ttkthemes",
+    "Pillow",
+    "picamera",
+    "rpi_ws281x",
+    "adafruit-circuitpython-neopixel",
     "adafruit-blinka"
 ]
+
+keywords = ['raspberrypi', 'microscope']
 
 [project.urls]
 Homepage = "https://github.com/Space-Biology-Group/OpenMicroView"
@@ -32,3 +39,16 @@ Issues = "https://github.com/Space-Biology-Group/OpenMicroView/issues"
 [tool.pyright]
 reportMissingModuleSource = "information"
 reportMissingImports = "information"
+
+[tool.pylint]
+
+disable = [
+    "missing-function-docstring",
+    "missing-module-docstring",
+    "import-error",
+    "unspecified-encoding",
+    "superfluous-parens"
+]
+suggestion-mode="yes"
+py-version = "3.7.0"
+max-line-length=110

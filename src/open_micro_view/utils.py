@@ -84,17 +84,17 @@ def umount2(target:str, options:int=0):
             raise OSError(errno, f"Error unmounting {target}: {os.strerror(errno)}")
 
 
-def dir_size_bytes(dir:str) -> int:
-    cmd = ['du', '-sb', dir]
+def dir_size_bytes(_dir:str) -> int:
+    cmd = ['du', '-sb', _dir]
     with Popen(cmd, stdout=PIPE, stderr=PIPE) as process:
         stdout, stderr = process.communicate()
     stdout = stdout.decode("utf-8")
     stderr = stderr.decode("utf-8")
-    size = stdout.split('\t')[0]
+    size = stdout.split('\t', maxsplit=1)[0]
     if size == '':
         logging.error("\nAn Error occured calculating dirsize:")
-        logging.error(f"{cmd}.stdout: {stdout}")
-        logging.error(f"{cmd}.stderr: {stderr}")
+        logging.error("%s.stdout: %s", cmd, stdout)
+        logging.error("%s.stderr: %s", cmd, stderr)
         return 0
     return int(size)
 
@@ -105,10 +105,21 @@ def shutdown(reboot:bool=False) -> bool:
     if reboot:
         cmd.append('-r')
     cmd.append('now')
-    logging.info(f'Shutdown command : {str(cmd)}' )
-    process = run(cmd, timeout=3, capture_output=True)
+    logging.info('Shutdown command : %s', cmd)
+    process = run(cmd, timeout=3, capture_output=True, check=False)
     if process.stdout:
         logging.warning(process.stdout.decode('utf8'))
     if process.stderr:
         logging.error(process.stderr.decode('utf8'))
     return (process.returncode == 0)
+
+def time_str(seconds:int):
+    t = {
+        'd': seconds // 86_400,
+        'h': seconds % 86_400 // 3600,
+        'm': seconds % 3600 // 60,
+        's': seconds % 60
+    }
+    if (seconds // 3600 < 24):
+        return f"{t['h']} h {t['m']} m {t['s']} s"
+    return f"{t['d']} d {t['h']} h {t['m']} m"

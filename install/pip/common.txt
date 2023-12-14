@@ -1,7 +1,8 @@
 imutils ~= 0.5
 ttkthemes ~= 3.2
 Pillow ~= 9.5
-picamera ~= 1.13
-rpi_ws281x ~= 5.0
 adafruit-circuitpython-neopixel ~= 6.3
 adafruit-blinka
+# Prod only
+#picamera ~= 1.13
+#rpi_ws281x ~= 5.0

@@ -30,13 +30,13 @@ class Camera:
     def __init__(self, root, tab):
         self.vs = None
         self.camera = PiCamera()
-        self.outputPath = DEFAULT_IMAGES_STORAGE
-        self.snapshotFrame = None
+        self.output_path = DEFAULT_IMAGES_STORAGE
+        self.snapshot_frame = None
         self.frame = None
         self.tab = tab
         self.thread = None
-        self.stopEvent = threading.Event()
-        self.restartEvent = threading.Event()
+        self.stop_event = threading.Event()
+        self.restart_event = threading.Event()
         self.root = root
         self.panel = None
         self.i_fps = IntVar()
@@ -45,17 +45,18 @@ class Camera:
         self.i_sharpness = IntVar()
         self.i_saturation = IntVar()
         self.new_resolution = None
-        self.videoQueue = Queue()
+        self.video_queue = Queue()
         self.camera.vflip = True
-        if (not os.path.isdir(self.getImagePath())):
-            os.mkdir(self.getImagePath())
+        self.image = None
+        if (not os.path.isdir(self.get_image_path())):
+            os.mkdir(self.get_image_path())
 
         # Start The Stream
-        self.startVideo()
+        self.start_video()
 
     def close(self):
-        self.stopEvent.set()
-        self.restartEvent.set()
+        self.stop_event.set()
+        self.restart_event.set()
         if self.thread:
             self.thread.join(timeout=1.0)
 
@@ -100,7 +101,7 @@ class Camera:
             self.i_saturation = self.camera.saturation
         return self.camera.saturation
 
-    def videoLoop(self, n, q):
+    def video_loop(self, q):
         preset_ratio = self.camera.resolution[1] / self.camera.resolution[0]
         time_frame = None
         time_previous = None
@@ -108,15 +109,15 @@ class Camera:
         fps_list = [0] * 10
         index = 0
         # If StopEvent is Set => Quit the loop
-        while not self.stopEvent.isSet():
-            self.restartEvent.clear()
+        while not self.stop_event.is_set():
+            self.restart_event.clear()
             logging.debug("Start video loop.")
             try:
                 while (not q.empty()):
                     res = q.get()
                     self.camera.resolution = res
                     preset_ratio = self.camera.resolution[1] / self.camera.resolution[0]
-                    logging.debug(f'Camera Resolution changed to {res}')
+                    logging.debug('Camera Resolution changed to %s', res)
                     sleep(0.3)
                 # Set the preview resolution
                 img_w = 240
@@ -158,7 +159,7 @@ class Camera:
                         index = (index + 1) % 10
                     # If StopEvent is Set => Quit the loop
                     # if RestartEvent is Set => Reload the stream
-                    if self.stopEvent.isSet() or self.restartEvent.isSet() or not q.empty():
+                    if self.stop_event.is_set() or self.restart_event.is_set() or not q.empty():
                         break
             except RuntimeError:
                 logging.error('RuntimeError: Exiting Camera thread...', exc_info=True)
@@ -166,39 +167,39 @@ class Camera:
         logging.warning('End of VideoLoop Thread')
         return True
 
-    def stopVideo(self):
+    def stop_video(self):
         logging.info('Stopping Video...')
-        self.stopEvent.set()
+        self.stop_event.set()
 
-    def restartVideo(self):
+    def restart_video(self):
         logging.info('Restarting Video...')
-        self.restartEvent.set()
+        self.restart_event.set()
 
-    def startVideo(self):
+    def start_video(self):
         sleep(0.2)
-        logging.debug(f'Threads : {threading.active_count()}')
-        self.restartEvent.clear()
+        logging.debug('Threads : %d', threading.active_count())
+        self.restart_event.clear()
         if self.thread is not None:
-            self.stopEvent.set()
+            self.stop_event.set()
             self.thread.join()
         logging.info('Ready - Starting new video hread')
         self.thread = threading.Thread(name='videoLoop',
-                                       target=self.videoLoop,
-                                       args=("video-thread", self.videoQueue))
-        self.restartEvent.clear()
-        self.stopEvent.clear()
+                                       target=self.video_loop,
+                                       args=[self.video_queue])
+        self.restart_event.clear()
+        self.stop_event.clear()
         self.thread.start()
         logging.debug('Thread Started')
 
-    def getImagePath(self):
-        return os.path.join(self.outputPath, PICTURE_FOLDER_NAME)
+    def get_image_path(self):
+        return os.path.join(self.output_path, PICTURE_FOLDER_NAME)
 
-    def takeSnapshot(self):
+    def take_snapshot(self):
         ts = datetime.datetime.now()
         filename = f"{ts.strftime(r'%Y-%m-%d_%H-%M-%S')}.jpg"
-        p = os.path.join(self.getImagePath(), filename)
+        p = os.path.join(self.get_image_path(), filename)
         self.camera.capture(p, 'jpeg')
-        logging.info(f"Picture '{filename}' saved.")
+        logging.info("Picture '%s' saved.", filename)
         # Display the saved picture instead of Live video.
         sleep(0.2)
         photo = Image.open(p)
@@ -206,47 +207,46 @@ class Camera:
         ratio = min(max_w / photo.width, max_h / photo.height)
         height = int(photo.height * ratio)
         width = int(photo.width * ratio)
-        logging.debug(f"Resized snapshot: {width}x{height}")
+        logging.debug("Resized snapshot: %dx%d", width, height)
         photo = photo.resize((width, height), Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(photo)
-        if (self.snapshotFrame is not None):
-            self.snapshotFrame.destroy()
-            self.snapshotFrame = None
+        if (self.snapshot_frame is not None):
+            self.snapshot_frame.destroy()
+            self.snapshot_frame = None
 
-        self.snapshotFrame = Frame(self.tab, bg='white')
-        self.snapshotFrame.grid_columnconfigure(0, weight=1)
-        label = Label(self.snapshotFrame, image=photo, bg='white')
+        self.snapshot_frame = Frame(self.tab, bg='white')
+        self.snapshot_frame.grid_columnconfigure(0, weight=1)
+        label = Label(self.snapshot_frame, image=photo, bg='white')
         label.image = photo
         label.grid(row=0, column=0, columnspan=2, pady=10, padx=5, sticky='n')
-        close = ttk.Button(self.snapshotFrame, text="Close Preview",
+        close = ttk.Button(self.snapshot_frame, text="Close Preview",
                            style='close.TButton',
-                           command=self.closeSnapshotPreview)
+                           command=self.close_snapshot_preview)
         close.grid(row=1, column=0, sticky='nsew', padx=5)
         trash = PhotoImage(data=TRASH_ICON)
-        del_btn = Button(self.snapshotFrame, relief=FLAT, image=trash, text="",
+        del_btn = Button(self.snapshot_frame, relief=FLAT, image=trash, text="",
                          bg='#FFDDDD', highlightcolor='#FFAAAA', width=40,
-                         command=partial(self.deleteSnapshot, p))
+                         command=partial(self.delete_snapshot, p))
         del_btn.image = trash
         del_btn.grid(row=1, column=1, padx=5, sticky='news')
         # Remove live stream
         self.panel.pack_forget()
         # Display Snapshot frame
-        self.snapshotFrame.pack(padx=(int(max_w - width) / 2), pady=0, fill='both')
+        self.snapshot_frame.pack(padx=(int(max_w - width) / 2), pady=0, fill='both')
 
-    def deleteSnapshot(self, filename):
-        self.closeSnapshotPreview()
+    def delete_snapshot(self, filename):
+        self.close_snapshot_preview()
         try:
             os.remove(filename)
             create_popup(text='The picture has been deleted.', close_btn='Ok')
             return True
         except OSError as e:
             create_popup(text=f'Error {e.errno}: Impossible to delete the file.', close_btn='Cancel')
-            logging.error(f'Unable to remove file {filename}', exc_info=True)
-            pass
+            logging.error('Unable to remove file %s', filename, exc_info=True)
         return False
 
-    def closeSnapshotPreview(self):
-        self.snapshotFrame.destroy()
-        self.snapshotFrame = None
+    def close_snapshot_preview(self):
+        self.snapshot_frame.destroy()
+        self.snapshot_frame = None
         self.panel.pack(padx=10, pady=10)
         return 0

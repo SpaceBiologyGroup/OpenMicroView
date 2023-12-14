@@ -10,7 +10,7 @@ from tkinter import (FLAT, GROOVE, Button, Frame, Label, PhotoImage, StringVar,
 
 from PIL import Image, ImageTk
 
-from .assets.icons import PAUSE_ICON, PLAY_ICON, TRASH_ICON, icon_Button
+from .assets.icons import PAUSE_ICON, PLAY_ICON, TRASH_ICON, icon_button
 from .timelapse_loader import IMG_EXTENSIONS, TimelapseLoader
 from .utils import (B_to_MB, B_to_readable, create_popup, dir_size_bytes,
                     seconds_to_readable)
@@ -28,7 +28,7 @@ class ImageBrowser():
     '''
 
     def __init__(self, path:str):
-        self.MAX_W, self.MAX_H = 700, 350
+        self.max_w, self.max_h = 700, 350
         self.path:str = path
         self.img_list:list = None
         self.frame:Frame = None
@@ -148,18 +148,18 @@ class ImageBrowser():
             self.update_picture(self.current_index, force=True)
 
     def clear_picture_frame(self):
-        if (self.current_image is not None):
+        if self.current_image is not None:
             self.current_image.destroy()
             self.current_image = None
 
-    def load_timelapse(self, dir:str):
+    def load_timelapse(self, _dir:str):
         self.clear_picture_frame()
         self.current_image = frame = Frame(self.image_frame, background='white', borderwidth=2)
         frame.pack(fill='both', expand=True, ipadx=10, ipady=10)
         frame.grid_columnconfigure([0, 2], weight=2)
         frame.grid_columnconfigure(1, weight=1)
         frame.grid_rowconfigure([1, 2], weight=1)
-        self.timelapse_loader = TimelapseLoader(dir, self.display_timelapse)
+        self.timelapse_loader = TimelapseLoader(_dir, self.display_timelapse)
         text = 'The timelapse is being loaded...'
         ttk.Label(frame, text=text).grid(row=1, column=1)
         progressbar = ttk.Progressbar(frame,
@@ -174,7 +174,7 @@ class ImageBrowser():
 
         self.timelapse_loader.load()
 
-    def display_timelapse(self, index:int=0):
+    def display_timelapse(self):
         if self.timelapse_loader.is_ready:
             self.clear_picture_frame()
         self.current_image = Frame(self.image_frame, background='white')
@@ -183,12 +183,12 @@ class ImageBrowser():
         timelapse_toolbar.pack(side='bottom', fill='x', pady=5)
         timelapse_toolbar.grid_columnconfigure(list(range(10)), weight=1)
 
-        icon_Button(timelapse_toolbar, PLAY_ICON,
+        icon_button(timelapse_toolbar, PLAY_ICON,
                     style='config.TButton',
                     command=self.timelapse_loader.play
                     ).grid(column=0, row=0, sticky='news', padx=5)
 
-        icon_Button(timelapse_toolbar, PAUSE_ICON,
+        icon_button(timelapse_toolbar, PAUSE_ICON,
                     style='config.TButton',
                     command=self.timelapse_loader.pause
                     ).grid(column=1, row=0, sticky='news', padx=5)
@@ -282,7 +282,7 @@ class ImageBrowser():
         try:
             photo:Image = Image.open(self.current_image_path)
             # Set size
-            ratio = min(self.MAX_W / photo.width, self.MAX_H / photo.height)
+            ratio = min(self.max_w / photo.width, self.max_h / photo.height)
             height = int(photo.height * ratio)
             width = int(photo.width * ratio)
             # In case the button has been pushed multiple times, another picture should take over.

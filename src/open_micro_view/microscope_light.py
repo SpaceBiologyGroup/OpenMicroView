@@ -21,21 +21,21 @@ class Light():
         self.color:dict = {'r':IntVar(), 'g':IntVar(), 'b':IntVar(), 'w':IntVar()}
         self.pixels:neopixel.NeoPixel = neopixel.NeoPixel(LED_PIN, LED_COUNT,
                                                           pixel_order=LED_ORDER,
-                                                          brightness=self.getBrightness(),
+                                                          brightness=self.get_brightness(),
                                                           auto_write=True)
-        self.setColor('w', 255)
-        self.setColor('r', 0)
-        self.setColor('g', 0)
-        self.setColor('b', 0)
+        self.set_color('w', 255)
+        self.set_color('r', 0)
+        self.set_color('g', 0)
+        self.set_color('b', 0)
         self.reload()
 
     # Reload function applies the changes to the hardware.
     def reload(self):
-        self.pixels.brightness = self.getBrightness()
-        self.pixels.fill((self.getColor('g'),
-                          self.getColor('r'),
-                          self.getColor('b'),
-                          self.getColor('w')))
+        self.pixels.brightness = self.get_brightness()
+        self.pixels.fill((self.get_color('g'),
+                          self.get_color('r'),
+                          self.get_color('b'),
+                          self.get_color('w')))
 
     def on(self):
         self.brightness.set(100)
@@ -45,19 +45,19 @@ class Light():
         self.brightness.set(0)
         self.reload()
 
-    def setRed(self, n:int):
-        self.setColor('r', n)
+    def set_red(self, n:int):
+        self.set_color('r', n)
 
-    def setGreen(self, n:int):
-        self.setColor('g', n)
+    def set_green(self, n:int):
+        self.set_color('g', n)
 
-    def setBlue(self, n:int):
-        self.setColor('b', n)
+    def set_blue(self, n:int):
+        self.set_color('b', n)
 
-    def setWhite(self, n:int):
-        self.setColor('w', n)
+    def set_white(self, n:int):
+        self.set_color('w', n)
 
-    def setColor(self, color:str, n:int):
+    def set_color(self, color:str, n:int):
         if color in ['r','g','b','w']:
             self.color[color].set(round(float(n)))
             self.reload()
@@ -68,13 +68,13 @@ class Light():
         self.brightness.set(round(float(b)))
         self.reload()
 
-    def getBrightness(self) -> float:
+    def get_brightness(self) -> float:
         return self.brightness.get() / 100
 
-    def getColor(self, color) -> int:
+    def get_color(self, color) -> int:
         return int(self.color[color].get())
 
-    def getColors(self) -> int:
+    def get_colors(self) -> int:
         return {k: v.get() for k, v in self.color.items()}
 
     def toggle(self) -> bool:

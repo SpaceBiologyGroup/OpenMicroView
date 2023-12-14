@@ -8,10 +8,12 @@ from datetime import datetime, timedelta
 from functools import partial
 from queue import Queue
 from time import sleep
-from tkinter import IntVar, StringVar, ttk, HORIZONTAL
+from tkinter import HORIZONTAL, IntVar, StringVar, ttk
 
 from picamera.exc import PiCameraRuntimeError
 from PIL import Image, ImageTk
+
+from .utils import time_str
 
 # Switch Light on before x sec at each Timelapse picture
 AUTOLIGHT_INTERVAL = 3
@@ -21,47 +23,51 @@ MIN_INTERVAL_AUTOLIGHT = 15
 
 
 class Timelapse:
+    """ Allow user to capture a timelapse"""
     def __init__(self, microscope, root_app):
         self.light = microscope.light
         self.camera = microscope.camera
         self.root_app = root_app
         self.time = {'s': 0, 'm': 0, 'h': 0}
         self.value = IntVar()
-        self.s_autoStop = StringVar()
-        self.t_autoStop = StringVar()
-        self.autoStop = 0
+        self.s_auto_stop = StringVar()
+        self.t_auto_stop = StringVar()
+        self.auto_stop = 0
         self.mode = None
         self.interval = StringVar()
         self.max = {'s': 59, 'm': 59, 'h': 24}
         self.btn = {'s': None, 'm': None, 'h': None}
-        self.timelapseFrame = None
-        self.nextFrame = StringVar()
-        self.lastFrame = StringVar()
+        self.timelapse_frame = None
+        self.next_frame = StringVar()
+        self.last_frame = StringVar()
         self.remaining = StringVar()
         self.total_seconds = 0
-        self.stopEvent = threading.Event()
-        self.timelapseQueue = Queue()
+        self.stop_event = threading.Event()
+        self.timelapse_queue = Queue()
         self.light_brightness = 0
         self.light_status = 0
+        self.container = None
+        self.tab = None
+        self.thread = None
 
-    def initTimelapseTab(self, container):
+    def init_timelapse_tab(self, container):
         self.container = container
         self.tab = tab = ttk.Frame(container)
-        self.timelapseFrame = ttk.Frame(container)
-        self.initTimelapseFrame()
+        self.timelapse_frame = ttk.Frame(container)
+        self.init_timelapse_frame()
         tab.pack(fill='both')
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_columnconfigure(1, weight=1)
         tab.grid_columnconfigure(2, weight=1)
         # LINE 0
         self.btn['s'] = ttk.Button(tab, text='Sec.', style='time.TButton',
-                                   command=partial(self.changeMode, 's'))
+                                   command=partial(self.change_mode, 's'))
         self.btn['s'].grid(column=0, row=0, sticky='news', padx=5, pady=5)
         self.btn['m'] = ttk.Button(tab, text='Min.', style='time.TButton',
-                                   command=partial(self.changeMode, 'm'))
+                                   command=partial(self.change_mode, 'm'))
         self.btn['m'].grid(column=1, row=0, sticky='news', padx=5, pady=5)
         self.btn['h'] = ttk.Button(tab, text='Hou.', style='time.TButton',
-                                   command=partial(self.changeMode, 'h'))
+                                   command=partial(self.change_mode, 'h'))
         self.btn['h'].grid(column=2, row=0, sticky='news', padx=5, pady=5)
 
         # LINE 1
@@ -71,12 +77,10 @@ class Timelapse:
         self.value.set(0)
         ttk.Button(tab, text='-',
                    style='control.TButton',
-                   command=self.valueMinus).grid(column=1, row=1, sticky='news',
+                   command=self.value_minus).grid(column=1, row=1, sticky='news',
                                                  padx=5, pady=5)
-        self.plus = ttk.Button(tab, text='+',
-                               style='control.TButton',
-                               command=self.valuePlus).grid(column=2, row=1, sticky='news',
-                                                            padx=5, pady=5)
+        ttk.Button(tab, text='+', style='control.TButton', command=self.value_plus
+                   ).grid(column=2, row=1, sticky='news', padx=5, pady=5)
         # LINE 3
         ttk.Label(tab, text='Interval:').grid(column=0, row=3, sticky='news')
         ttk.Label(tab, textvar=self.interval).grid(column=1, row=3, columnspan=2, sticky='news')
@@ -84,48 +88,47 @@ class Timelapse:
         # LINE 4
         ttk.Separator(tab, orient=HORIZONTAL).grid(column=0, row=4, columnspan=3, padx=10, pady=2)
         # LINE 5
-        ttk.Label(tab, textvar=self.t_autoStop).grid(column=0, row=5, columnspan=3, sticky='news', pady=5)
+        ttk.Label(tab, textvar=self.t_auto_stop).grid(column=0, row=5, columnspan=3, sticky='news', pady=5)
 
         # LINE 6
         # Automatically stop after x photos (∞)
-        ttk.Label(tab, textvar=self.s_autoStop,
+        ttk.Label(tab, textvar=self.s_auto_stop,
                   style='tlvalue.TLabel').grid(column=0, row=6, sticky='nes', padx=5, pady=5)
-        self.refreshAutoStop()
+        self.refresh_auto_stop()
         ttk.Button(tab, text='-',
                    style='control.TButton',
-                   command=self.stopMinus).grid(column=1, row=6, sticky='news', padx=5, pady=5)
-        self.plus = ttk.Button(tab, text='+',
-                               style='control.TButton',
-                               command=self.stopPlus).grid(column=2, row=6, sticky='news', padx=5, pady=5)
+                   command=self.stop_minus).grid(column=1, row=6, sticky='news', padx=5, pady=5)
+        ttk.Button(tab, text='+', style='control.TButton', command=self.stop_plus
+                   ).grid(column=2, row=6, sticky='news', padx=5, pady=5)
         # LINE 7 - nothing
 
         # LINE 8
         self.btn['start'] = ttk.Button(tab, text="Start Timelapse",
-                                       command=self.startTimelapse)
+                                       command=self.start_timelapse)
         self.btn['start'].grid(column=0, row=8, columnspan=3, padx=5, pady=5)
 
         # END
-        self.changeMode('s')
-        self.changeValue(0)
+        self.change_mode('s')
+        self.change_value(0)
         return
 
-    def initTimelapseFrame(self):
-        tab = self.timelapseFrame
+    def init_timelapse_frame(self):
+        tab = self.timelapse_frame
         tab.grid_columnconfigure(1, weight=1)
         ttk.Label(tab, text='Last:').grid(row=0, column=0, sticky='news')
-        ttk.Label(tab, textvar=self.lastFrame).grid(row=0, column=1, sticky='news')
+        ttk.Label(tab, textvar=self.last_frame).grid(row=0, column=1, sticky='news')
         ttk.Label(tab, text='Next:').grid(row=1, column=0, sticky='news')
-        ttk.Label(tab, textvar=self.nextFrame).grid(row=1, column=1, sticky='news')
+        ttk.Label(tab, textvar=self.next_frame).grid(row=1, column=1, sticky='news')
         ttk.Label(tab, text='Remains:').grid(row=2, column=0, sticky='news')
         ttk.Label(tab, textvar=self.remaining).grid(row=2, column=1, sticky='news')
         ttk.Separator(tab, orient=HORIZONTAL).grid(row=3, column=0, columnspan=3, padx=30, pady=20)
         self.btn['stop'] = ttk.Button(tab, text="Stop Now",
                                       style='del.TButton',
-                                      command=self.stopTimelapse)
+                                      command=self.stop_timelapse)
         self.btn['stop'].grid(column=0, row=8, columnspan=2, padx=10, pady=10, sticky='news')
         return
 
-    def changeMode(self, mode):
+    def change_mode(self, mode):
         if self.mode == mode:
             return
         if self.mode is not None:
@@ -134,69 +137,62 @@ class Timelapse:
         self.mode = mode
         self.value.set(self.time[mode])
 
-    def stopPlus(self):
-        if self.autoStop < 100:
-            self.autoStop += 5
-        elif self.autoStop < 500:
-            self.autoStop += 10
+    def stop_plus(self):
+        if self.auto_stop < 100:
+            self.auto_stop += 5
+        elif self.auto_stop < 500:
+            self.auto_stop += 10
         else:
-            self.autoStop += 20
-        self.s_autoStop.set(self.autoStop)
-        self.refreshAutoStop()
+            self.auto_stop += 20
+        self.s_auto_stop.set(self.auto_stop)
+        self.refresh_auto_stop()
 
-    def stopMinus(self):
-        if self.autoStop <= 5:
-            self.autoStop = 0
-        elif self.autoStop <= 100:
-            self.autoStop -= 5
-        elif self.autoStop <= 500:
-            self.autoStop -= 10
+    def stop_minus(self):
+        if self.auto_stop <= 5:
+            self.auto_stop = 0
+        elif self.auto_stop <= 100:
+            self.auto_stop -= 5
+        elif self.auto_stop <= 500:
+            self.auto_stop -= 10
         else:
-            self.autoStop -= 20
-        self.refreshAutoStop()
+            self.auto_stop -= 20
+        self.refresh_auto_stop()
 
-    def refreshAutoStop(self):
-        if self.autoStop:
-            n = self.total_seconds * (self.autoStop - 1)
-            if (n // 3600 < 24):
-                duration = '{} h {} m {} s'.format(n // 3600,
-                                                   n % 3600 // 60,
-                                                   n % 60)
-            else:
-                duration = '{} d {} h {} m'.format(n // 86_400,
-                                                   n % 86_400 // 3600,
-                                                   n % 3600 // 60)
-            self.s_autoStop.set(self.autoStop)
-            self.t_autoStop.set('Autostop after {}'.format(duration))
+    def refresh_auto_stop(self):
+        if self.auto_stop:
+            n = self.total_seconds * (self.auto_stop - 1)
+            duration = time_str(n)
+            self.s_auto_stop.set(self.auto_stop)
+            self.t_auto_stop.set(f'Autostop after {duration}')
         else:
-            self.t_autoStop.set('Stop timelapse manually')
-            self.s_autoStop.set('∞')
+            self.t_auto_stop.set('Stop timelapse manually')
+            self.s_auto_stop.set('∞')
 
-    def valuePlus(self):
+    def value_plus(self):
         val = self.value.get() + 1
         if (val > self.max[self.mode]):
             val = 0
-        self.changeValue(val)
+        self.change_value(val)
 
-    def valueMinus(self):
+    def value_minus(self):
         val = self.value.get() - 1
         if (val < 0):
             val = self.max[self.mode]
-        self.changeValue(val)
+        self.change_value(val)
 
-    def changeValue(self, value):
+    def change_value(self, value):
         self.value.set(value)
         self.time[self.mode] = value
         t = self.time
         self.total_seconds = t['s'] + (t['m'] * 60) + (t['h'] * 3600)
-        self.interval.set("{} h {} min {} sec".format(t['h'], t['m'], t['s']))
-        self.refreshAutoStop()
+        self.interval.set(f"{t['h']} h {t['m']} min {t['s']} sec")
+        self.refresh_auto_stop()
         if (self.total_seconds < 5):
             self.btn['start'].state(['disabled'])
         else:
             self.btn['start'].state(['!disabled'])
 
-    def toggleLight(self):
+    def toggle_light(self):
         if self.light_status:
             self.light.set_brightness(0)
             self.light_status = 0
@@ -204,33 +200,34 @@ class Timelapse:
             self.light.set_brightness(self.light_brightness)
             self.light_status = 1
 
-    def startTimelapse(self):
+    def start_timelapse(self):
         self.btn['start'].state(['disabled'])
         self.camera.stopVideo()
         self.tab.pack_forget()
-        self.timelapseFrame.pack(fill='both')
-        self.thread = threading.Thread(target=self.timelapseLoop,
-                                       args=("timelapse-thread", self.timelapseQueue))
-        self.stopEvent.clear()
+        self.timelapse_frame.pack(fill='both')
+        self.thread = threading.Thread(target=self.timelapse_loop,
+                                       args=("timelapse-thread", self.timelapse_queue))
+        self.stop_event.clear()
         self.thread.start()
         self.root_app.timelapse_started()
 
-    def stopTimelapse(self):
-        self.timelapseQueue.put('stop')
+    def stop_timelapse(self):
+        self.timelapse_queue.put('stop')
         self.camera.startVideo()
         self.tab.pack(fill='both')
-        self.timelapseFrame.pack_forget()
+        self.timelapse_frame.pack_forget()
         self.root_app.timelapse_stopped()
         if self.light_status == 0:
-            self.toggleLight()
+            self.toggle_light()
 
-    def timelapseLoop(self, name, q):
+    def timelapse_loop(self, name, q):
+        logging.debug('timelapse loop : %s', name)
         begin = datetime.now()
         now = begin
         path = self.camera.getImagePath()
         path = os.path.join(path, f"TL_{begin.strftime(r'%Y-%m-%d_%H-%M-%S')}")
         os.mkdir(path)
-        remains = self.autoStop
+        remains = self.auto_stop
         last = None
         interval = self.total_seconds
         height = 284
@@ -239,8 +236,8 @@ class Timelapse:
         self.light_status = 1
         qt_photos = 0
         while (True):
-            if qt_photos >= self.autoStop > 0:
-                self.stopTimelapse()
+            if qt_photos >= self.auto_stop > 0:
+                self.stop_timelapse()
             if (not q.empty()):
                 msg = q.get()
                 if msg == 'stop':
@@ -262,7 +259,7 @@ class Timelapse:
                     self.camera.panel.configure(image=photo)
                     self.camera.panel.image = photo
                     last = now
-                    self.lastFrame.set(str(datetime.strftime(last, r'%Y-%m-%d %H:%M:%S ')))
+                    self.last_frame.set(str(datetime.strftime(last, r'%Y-%m-%d %H:%M:%S ')))
                     # Photo Counter
                     qt_photos += 1
                 except PiCameraRuntimeError:
@@ -270,12 +267,9 @@ class Timelapse:
             # Refresh time before Next Frame
             n = int((timedelta(0, interval) - (now - last)).total_seconds())
             if interval < 3600:
-                self.nextFrame.set('{} min {} sec'.format(n // 60,
-                                                          n % 60))
+                self.next_frame.set(f'{n // 60} min {n % 60} sec')
             else:
-                self.nextFrame.set('{} h {} m {} s'.format(n // 3600,
-                                                           n % 3600 // 60,
-                                                           n % 60))
+                self.next_frame.set(f'{n // 3600} h {n % 3600 // 60} m {n % 60} s')
 
             # AUTOLIGHT : Switch light on/off automatically before/after pictures
             if interval > MIN_INTERVAL_AUTOLIGHT:
@@ -283,20 +277,13 @@ class Timelapse:
                      and self.light_status == 0)
                     or (n > interval - 5
                         and self.light_status == 1)):
-                    self.toggleLight()
+                    self.toggle_light()
 
             # Refresh time before End
             if remains == 0:
                 self.remaining.set('∞')
             else:
                 n = max(0, int(interval * (remains - qt_photos) - (interval - n)))
-                if (n // 3600 < 24):  # if less than 1 day
-                    r = '{} h {} m {} s'.format(n // 3600,
-                                                n % 3600 // 60,
-                                                n % 60)
-                else:
-                    r = '{} d {} h {} m'.format(n // 86_400,
-                                                n % 86_400 // 3600,
-                                                n % 3600 // 60)
+                r = time_str(n)
                 self.remaining.set(r)
             sleep(0.200)  # Wait 200 ms
