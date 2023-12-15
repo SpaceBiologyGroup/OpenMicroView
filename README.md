@@ -160,20 +160,33 @@ The software has been developped, tested and validated to run on a RaspberryPi 3
 ## Operating System
 [See on RaspberryPi Website](https://downloads.raspberrypi.com/raspios_oldstable_armhf/images/)
 
-OpenMicroView has been tested and validated on the following system versions :
+OpenMicroView has been tested and validated on the following system versions:
 
 | RPi |      Image              |  Release   | Kernel  |    RPi Firmware Hash     | 
 |-----|-------------------------|------------|---------|--------------------------|
-| 3B  | raspios_oldstable_armhf | 2019-09-26 | 4.19.75 | `01508e81ec1e918448227ca864616d56c430b46d` |
+| 3B  | raspios_oldstable_armhf | 2019-07-10 | 4.19.75 | `175dfb027ffabd4b8d5080097af0e51ed9a4a56c` |
 | 3B  | raspios_oldstable_armhf | 2021-12-02 | 5.10.63 | `fa45ccf5a4b183ee566b36d74fb4b65bf9358bed` |
 | 3B  | raspios_oldstable_armhf | 2022-01-28 | 5.10.63 | `60f6a26ed5701eec6be5c864dd0db48fe6244fad` |
 | 3B  | raspios_oldstable_armhf | 2022-04-04 | 5.10.103| `910e079df1266036159ce4ea2aaa2ba9976ea3f1` |
 | 3B  | raspios_oldstable_armhf | 2022-09-06 | 5.10.103| `91e90da69cf0b1ddae23764b417bd6b43ec02c63` |
+| 3B  | raspios_oldstable_armhf | 2023-02-21*| 5.10.103| `b57a33ad0991ffc19cd7b47cb7e20e3217705573` |
+
+_* Recommended_
+
+The following system versions presented issues during the tests:
+| RPi |      Image              |  Release   | Kernel  | Issues                           | Firmware Hash   | 
+|-----|-------------------------|------------|---------|----------------------------------|-----------------|
+| 3B  | raspios_oldstable_armhf | 2022-09-22 | 5.10.103|Camera not detected¹, Screen OFF² | `a1750...9b435` |
+| 3B  | raspios_oldstable_armhf | 2023-05-03 | 5.10.103|Uncalibr. touchscreen³, Screen OFF| `638c7...7ea5b` |
+| 3B  | raspios_oldstable_armhf | 2023-12-05 | 6.1.21  |Uncalibr. touchscreen             | `446f3...e19da` |
 
 
-The following system versions presented issues with the touchscreen, unrelated to the present software:  
-| RPi |      Image              |  Release   | Kernel  |    RPi Firmware Hash     | 
-|-----|-------------------------|------------|---------|--------------------------|
-| 3B  | raspios_oldstable_armhf | 2023-05-03 | 5.10.103| `638c7521ee0c431fafca1e2bd4fd25705b37ea5b` |
+_¹ Camera seems not detected due to a transition from old Camera library to new library. No solution found at the moment._  
+_² The screen drivers seems to be broken and provoke the screen to turn off. Redownloading/installing the system may fix the issue._
+
+_³ The touchscreen issue doesn't seem to be kernel related. No solution found at the moment,_
 
 
+> **Note**
+> The hash is available in the `.info` file along with the img/xz file, or in the system
+> open the file `/boot/issue.txt`
