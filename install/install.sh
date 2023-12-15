@@ -69,6 +69,11 @@ license(){
     exit
 }
 
+# Relocate to project root directory
+install_dir=$(dirname "$0")
+cd "${install_dir}/../" 2>/dev/null
+
+# Check options
 while getopts "hADStCL" arg; do
   case $arg in
     h) usage ;;
@@ -83,6 +88,7 @@ while getopts "hADStCL" arg; do
   esac
 done
 
+# Formatting
 info(){
     msg="$@"
     echo -e $COLOR1 "[INFO]" $msg $RCOLOR
@@ -131,7 +137,7 @@ setup_permissions(){
 install_autostart(){
     info "Installing $SOFT_NAME in ${INSTALL_DIR}..."
     mkdir -p $INSTALL_DIR
-    cp -R . $INSTALL_DIR
+    cp -R ./src ./start.py $INSTALL_DIR
     echo "$SERVICE_FILE" > $SYSD_FILE
     systemctl daemon-reload
     systemctl enable $SOFT_NAME.service
