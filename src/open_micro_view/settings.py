@@ -254,7 +254,7 @@ class Settings:
     def get_config(self) -> dict:
         """ Returns current config in a dictionnary """
         return ({
-            'light': self.light.getColors(),
+            'light': self.light.get_colors(),
             'camera':{
                 'brightness': self.camera.brightness(),
                 'contrast': self.camera.contrast(),
@@ -268,7 +268,7 @@ class Settings:
         if ('light' in config):
             for c in ['r', 'g', 'b', 'w']:
                 if c in config['light'] and (0 <= int(config['light'][c]) <= 255):
-                    self.light.setColor(c, int(config['light'][c]))
+                    self.light.set_color(c, int(config['light'][c]))
             self.light.reload()  # Apply changes
         if ('camera' in config):
             cam_conf = config['camera']

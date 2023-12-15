@@ -14,6 +14,7 @@ from picamera.exc import PiCameraRuntimeError
 from PIL import Image, ImageTk
 
 from .utils import time_str
+from .microscope import Microscope
 
 # Switch Light on before x sec at each Timelapse picture
 AUTOLIGHT_INTERVAL = 3
@@ -24,7 +25,7 @@ MIN_INTERVAL_AUTOLIGHT = 15
 
 class Timelapse:
     """ Allow user to capture a timelapse"""
-    def __init__(self, microscope, root_app):
+    def __init__(self, microscope:Microscope, root_app):
         self.light = microscope.light
         self.camera = microscope.camera
         self.root_app = root_app
@@ -202,7 +203,7 @@ class Timelapse:
 
     def start_timelapse(self):
         self.btn['start'].state(['disabled'])
-        self.camera.stopVideo()
+        self.camera.stop_video()
         self.tab.pack_forget()
         self.timelapse_frame.pack(fill='both')
         self.thread = threading.Thread(target=self.timelapse_loop,
@@ -213,7 +214,7 @@ class Timelapse:
 
     def stop_timelapse(self):
         self.timelapse_queue.put('stop')
-        self.camera.startVideo()
+        self.camera.start_video()
         self.tab.pack(fill='both')
         self.timelapse_frame.pack_forget()
         self.root_app.timelapse_stopped()
@@ -232,7 +233,7 @@ class Timelapse:
         interval = self.total_seconds
         height = 284
         width = round(height / self.camera.camera.resolution[1] * self.camera.camera.resolution[0])
-        self.light_brightness = round(self.light.getBrightness() * 100)
+        self.light_brightness = round(self.light.get_brightness() * 100)
         self.light_status = 1
         qt_photos = 0
         while (True):
