@@ -191,7 +191,7 @@ if [[ "$DAEMON_INSTALL" -eq 1 ]] && [[ ! $DISPLAY ]]; then
     warning "DISPLAY is not set."
     echo -e "${WARN_COLOR} > Press ${OK_COLOR}ENTER${WARN_COLOR} to use default ':0' or start install script from pi display (use ${ERR_COLOR}CTRL+C${WARN_COLOR} to cancel installation).$RCOLOR"
     read -p 'Continue ?'
-    DISPLAY=':0'
+    DISPLAY=':0.0'
 fi
 
 sleep 1
