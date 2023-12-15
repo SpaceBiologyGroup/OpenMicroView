@@ -255,7 +255,7 @@ class Timelapse:
                     logging.info("Picture '%s' saved.", filename)
                     # Display the saved picture instead of Live video.
                     photo = Image.open(p)
-                    photo = photo.resize((width, height), Image.ANTIALIAS)
+                    photo = photo.resize((width, height), Image.LANCZOS)
                     photo = ImageTk.PhotoImage(photo)
                     self.camera.panel.configure(image=photo)
                     self.camera.panel.image = photo

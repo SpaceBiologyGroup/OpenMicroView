@@ -65,7 +65,7 @@ class TimelapseLoader:
                 if ratio is None:
                     ratio = min(self.max_w / photo.width, self.max_h / photo.height)
                     h, w = int(photo.height * ratio), int(photo.width * ratio)
-                photo = ImageTk.PhotoImage(photo.resize((w, h), Image.ANTIALIAS))
+                photo = ImageTk.PhotoImage(photo.resize((w, h), Image.LANCZOS))
                 self.check_stop_event()  # check if stopped before adding frame to list
                 self.frames.append(photo)
                 self.frames_loaded += 1

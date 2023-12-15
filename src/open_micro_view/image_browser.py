@@ -245,7 +245,7 @@ class ImageBrowser():
                 photo:Image = Image.open(os.path.join(fullpath, f))
                 ratio = min(400 / photo.width, 150 / photo.height)
                 h, w = int(photo.height * ratio), int(photo.width * ratio)
-                photo = ImageTk.PhotoImage(photo.resize((w, h), Image.ANTIALIAS))
+                photo = ImageTk.PhotoImage(photo.resize((w, h), Image.LANCZOS))
                 img.configure(image=photo, relief=GROOVE)
                 img.image = photo
                 img.update()
@@ -294,7 +294,7 @@ class ImageBrowser():
             # In case the button has been pushed multiple times, another picture should take over.
             if index != self.current_index:
                 return False
-            photo = ImageTk.PhotoImage(photo.resize((width, height), Image.ANTIALIAS))
+            photo = ImageTk.PhotoImage(photo.resize((width, height), Image.LANCZOS))
             # Remove previous image
             # Create Frame
             self.clear_picture_frame()

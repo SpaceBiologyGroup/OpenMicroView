@@ -140,7 +140,7 @@ class Camera:
                     ratio = min(max_w / image.width, max_h / image.height)
                     width = round(image.width * ratio)
                     height = round(image.height * ratio)
-                    image = ImageTk.PhotoImage(image.resize((width, height), Image.ANTIALIAS))
+                    image = ImageTk.PhotoImage(image.resize((width, height), Image.LANCZOS))
 
                     if self.panel is None:
                         self.panel = Label(self.tab, image=image)
@@ -208,7 +208,7 @@ class Camera:
         height = int(photo.height * ratio)
         width = int(photo.width * ratio)
         logging.debug("Resized snapshot: %dx%d", width, height)
-        photo = photo.resize((width, height), Image.ANTIALIAS)
+        photo = photo.resize((width, height), Image.LANCZOS)
         photo = ImageTk.PhotoImage(photo)
         if (self.snapshot_frame is not None):
             self.snapshot_frame.destroy()
