@@ -22,6 +22,15 @@ RCOLOR="\033[m"
 DAEMON_INSTALL=0
 DEPENDENCIES_INSTALL=0
 CONFIG_CHECK=0
+SHOW_LICENSE=0
+
+TESTED_OS=(
+    "2019-09-26"
+    "2021-12-02"
+    "2022-01-28"
+    "2022-04-04"
+    "2022-09-06"
+)
 
 no_color(){
     COLOR1=""
@@ -35,12 +44,13 @@ usage(){
 echo "Usage: $0 [OPTION]...
 Install $SOFT_NAME requirements.
 
-  -h      Show this help.
+  -h      Show this Help and exit
+  -L      Show License and exit
 
-  -A      All: equivalent to -CDS
-  -C      Check raspberry pi configuration.
-  -D      Install apt and python dependencies as root
+  -A      All: equivalent to '-DSC', recommended for a full install
+  -D      Install apt and python Dependencies as root
   -S      Install as a Service, auto-start at boot.
+  -C      Check raspberry pi configuration.
   -t      No Colors - if your terminal doesn't support coloring.
 
 Debug:
@@ -49,14 +59,25 @@ Debug:
   - DISPLAY should be the value of \$DISPLAY when checked on the direct screen.
     current \$DISPLAY value : '$DISPLAY'
   - XAuthotity path should exists. Check the username is the main user.
-    Default user: uid=1000 (current: $USERNAME)
+    Default user: uid=1000 ($USERNAME)
   "
   exit 0
 }
 
-while getopts "hADStC" arg; do
+license(){
+    less ./LICENSE
+    exit
+}
+
+# Relocate to project root directory
+install_dir=$(dirname "$0")
+cd "${install_dir}/../" 2>/dev/null
+
+# Check options
+while getopts "hADStCL" arg; do
   case $arg in
     h) usage ;;
+    L) license ;;
     A) DAEMON_INSTALL=1
        DEPENDENCIES_INSTALL=1
        CONFIG_CHECK=1 ;;
@@ -67,6 +88,7 @@ while getopts "hADStC" arg; do
   esac
 done
 
+# Formatting
 info(){
     msg="$@"
     echo -e $COLOR1 "[INFO]" $msg $RCOLOR
@@ -115,7 +137,7 @@ setup_permissions(){
 install_autostart(){
     info "Installing $SOFT_NAME in ${INSTALL_DIR}..."
     mkdir -p $INSTALL_DIR
-    cp -R . $INSTALL_DIR
+    cp -R ./src ./start.py $INSTALL_DIR
     echo "$SERVICE_FILE" > $SYSD_FILE
     systemctl daemon-reload
     systemctl enable $SOFT_NAME.service
@@ -130,18 +152,18 @@ BANNER="$COLOR1
   ______   .______    _______ .__   __.  ${MC}.__.  .__.  ${COLOR1}____    ____  __   _______ ____    __    ____
  /  __  \  |   _  \  |   ____||  \ |  |  ${MC}|::|  |::|  ${COLOR1}\   \  /   / |  | |   ____|\   \  /  \  /   /
 |  |  |  | |  |_)  | |  |__   |   \|  |  ${MC}|::|  |::|  ${COLOR1} \   \/   /  |  | |  |__    \   \/    \/   /
-|  |  |  | |   ___/  |   __|  |  . \`  | ${MC} |::╰──╯::| ${COLOR1}   \      /   |  | |   __|    \            /
-|  \`--'  | |  |      |  |____ |  |\   | ${MC} |::::::::\_${COLOR1}    \    /    |  | |  |____    \    /\    /
+|  |  |  | |   ___/  |   __|  |  . '  |  ${MC}|::╰──╯::| ${COLOR1}   \      /   |  | |   __|    \            /
+|  '--'  | |  |      |  |____ |  |\   |  ${MC}|::::::::\_${COLOR1}    \    /    |  | |  |____    \    /\    /
  \______/  | _|      |_______||__| \__|  ${MC}|::|‾‾‾‾'::'${COLOR1}    \__/     |__| |_______|    \__/  \__/
                                          ${MC}|::|
-                                         ${MC}|,-'     $ERR_COLOR
-                                                        _ _  _ ____ ___ ____ _    _    ____ ____
-                                                        | |\ | [__   |  |__| |    |    |___ |__/
-                                                        | | \| ___]  |  |  | |___ |___ |___ |  \\
+                                         ${MC}|::|$ERR_COLOR           _ _  _ ____ ___ ____ _    _    ____ ____
+                                         ${MC}|,-'$ERR_COLOR           | |\ | [__   |  |__| |    |    |___ |__/
+                                         ${MC}    $ERR_COLOR           | | \| ___]  |  |  | |___ |___ |___ |  \\
 $RCOLOR
 OpenMicroView - Copyright (C) 2023 V. Salvadori
  This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to
- redistribute it under certain conditions. For details read the LICENSE file included.
+ redistribute it under certain conditions.
+ For details read the complete LICENSE file with '$0 -L'.
 "
 echo -e "$BANNER"
 
@@ -208,6 +230,19 @@ fi
 
 # Config Check
 
+check_versions(){
+    release=$(egrep -o "20[0-9]{2}-[0-1][0-9]-[0-3][0-9]" /boot/issue.txt)
+    for version in ${TESTED_OS[@]}; do
+        if [[ "${version}" == "${release}" ]]; then
+            ok "OS Version ${release} has been tested and validated"
+            return 1
+        fi
+    done
+    warning "OS Version ${release} has not been tested or validated. Full Version:"
+    cat /boot/issue.txt
+    return 0
+}
+
 is_set(){
         search_text=$1
 	file=$2
@@ -216,31 +251,39 @@ is_set(){
 }
 
 check(){
-        param=$1
-        return_code=$2
-        level=$3
-        error=$4
+    param=$1
+    return_code=$2
+    level=$3
+    error=$4
 	file=$5
 	full_line=$6
 	[[ $full_line -eq 0 ]] && RE="$param" || RE="^$param\$"
-        is_set $RE $file
-        r=$?
-        if [[ $r -ne $return_code ]]; then
-		[[ $return_code -eq 0 ]] && t="not set" || t="is a misconfiguration"
-                $level "$file: '$param' $t, $error"
+    is_set $RE $file
+    r=$?
+    if [[ $r -ne $return_code ]]; then
+    [[ $return_code -eq 0 ]] && t="not set" || t="is a misconfiguration"
+            $level "$file: '$param' $t, $error"
 	else
-		[[ $return_code -ne 0 ]] && t="error absent" || t="is set"
-                ok "$file: '$param' $t"
-        fi
+    [[ $return_code -ne 0 ]] && t="error absent" || t="is set"
+            ok "$file: '$param' $t"
+    fi
+    return $r
 }
 
 
 if [[ CONFIG_CHECK -eq 1 ]]; then
+    check_versions
 	boot_config='/boot/config.txt'
 	info "Checking '$boot_config'..."
-	check "dtparam=audio=off" 0 error "LED may not worked correctly" $boot_config 1
+	check "dtparam=audio=off" 0 error "LED may not work properly. Edit $boot_config manually" $boot_config 1
+    if [[ $? -ne 0 ]]; then
+        line=$(grep 'dtparam=audio=' $boot_config -n)
+        if [[ $? -eq 0 ]]; then
+            warning "dtparam config is present on line $line"
+        fi
+    fi
 	check "start_x=1" 0 error "Camera seems disable. Use 'sudo raspi-config' > 3 > 1 > Yes" $boot_config 1
-	check "gpu_mem=128" 0 warning "gpu_mem should be >= 128 for the screen to work properly" $boot_config 1
+	check "gpu_mem=128" 0 warning "gpu_mem should be >= 128 for the camera to work properly" $boot_config 1
 	# check "enable_uart=1" 0 info "required for non-root operation" $boot_config
 	# check "dtparam=spi=on" 0 info "required for non-root operation" $boot_config
 	info "Checking Service configuration..."
@@ -257,5 +300,10 @@ if [[ CONFIG_CHECK -eq 1 ]]; then
 	                ok "$SYSD_FILE: XAUTHORITY path seems correct"
 		fi
 	fi
+    if [[ -f '/var/run/reboot-required' ]]; then
+        warning "Reboot is required to complete installation."
+    else
+        info "Reboot may be required if you edited the configuration."
+    fi
 fi
 
