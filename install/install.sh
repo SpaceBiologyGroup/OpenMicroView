@@ -170,7 +170,7 @@ fix_configuration(){
     info "Automatically configuring the Raspberry Pi"
     BAKUP='/root/boot-config-txt.bak'
     info "| Backing up '$BOOT_CONFIG' to '$BAKUP'"
-    cp "$BOOT_CONFIG" "$BAKUP"
+    cp -b "$BOOT_CONFIG" "$BAKUP"
     info "| Activating camera..."
     # Activate camera
     raspi-config nonint do_camera 0
@@ -230,7 +230,7 @@ BANNER="$COLOR1
 |  |  |  | |  |_)  | |  |__   |   \|  |  ${MC}|::|  |::|  ${COLOR1} \   \/   /  |  | |  |__    \   \/    \/   /
 |  |  |  | |   ___/  |   __|  |  . '  |  ${MC}|::╰──╯::| ${COLOR1}   \      /   |  | |   __|    \            /
 |  '--'  | |  |      |  |____ |  |\   |  ${MC}|::::::::\_${COLOR1}    \    /    |  | |  |____    \    /\    /
- \______/  | _|      |_______||__| \__|  ${MC}|::|¨¨¨¨'::'${COLOR1}    \__/     |__| |_______|    \__/  \__/
+ \______/  | _|      |_______||__| \__|  ${MC}|::|‾‾‾‾'::'${COLOR1}    \__/     |__| |_______|    \__/  \__/
                                          ${MC}|::|
                                          ${MC}|::|$ERR_COLOR           _ _  _ ____ ___ ____ _    _    ____ ____
                                          ${MC}|,-'$ERR_COLOR           | |\ | [__   |  |__| |    |    |___ |__/
