@@ -177,7 +177,7 @@ fix_configuration(){
     if [[ $? -ne 0 ]]; then config_error; fi
     info "| Activating LED compatibility..."
     # LED config
-    raspi-config nonint set_config_var dtparam=audio off $CONFIG
+    raspi-config nonint set_config_var dtparam=audio off $BOOT_CONFIG
     if [[ $? -ne 0 ]]; then config_error; fi
 }
 
@@ -230,7 +230,7 @@ BANNER="$COLOR1
 |  |  |  | |  |_)  | |  |__   |   \|  |  ${MC}|::|  |::|  ${COLOR1} \   \/   /  |  | |  |__    \   \/    \/   /
 |  |  |  | |   ___/  |   __|  |  . '  |  ${MC}|::╰──╯::| ${COLOR1}   \      /   |  | |   __|    \            /
 |  '--'  | |  |      |  |____ |  |\   |  ${MC}|::::::::\_${COLOR1}    \    /    |  | |  |____    \    /\    /
- \______/  | _|      |_______||__| \__|  ${MC}|::|‾‾‾‾'::'${COLOR1}    \__/     |__| |_______|    \__/  \__/
+ \______/  | _|      |_______||__| \__|  ${MC}|::|¨¨¨¨'::'${COLOR1}    \__/     |__| |_______|    \__/  \__/
                                          ${MC}|::|
                                          ${MC}|::|$ERR_COLOR           _ _  _ ____ ___ ____ _    _    ____ ____
                                          ${MC}|,-'$ERR_COLOR           | |\ | [__   |  |__| |    |    |___ |__/

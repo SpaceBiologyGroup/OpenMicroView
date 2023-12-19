@@ -48,16 +48,18 @@ You can launch it with `sudo OpenMicroView/install/install.sh`
 
 ### One-liner installation
 You can execute this command, it will do the same as below steps 1, 2, 3 and 4 in a single line.
+```sh
+git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView --depth 1 && sudo OpenMicroView/install/install.sh -A
 ```
-git clone https://github.com/SpaceBiologyGroup/OpenMicroView --depth 1 && sudo OpenMicroView/install/install.sh -A
-```
+Once done, adjust the system configuration if required and reboot the Raspberry
+Pi with `sudo reboot`.
 
 If you prefer to control every steps, you can do it step by step as shown below.
 
 ### 1. Download the project
 
 ```sh
-git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView
+git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView --depth 1
 ```
 
 ### 2. Install Dependencies
@@ -72,7 +74,7 @@ To install OpenMicroView as a service, run the following command as root:
 OpenMicroView/install/install.sh -S
 ```
 The software will be copied in `/opt/OpenMicroView/` and a service file
-will be created in systemd directory.
+will be created in the systemd directory.
 
 ### 4. Check your raspberry pi configuration
 The install script allows you to check for classical configuration errors,
@@ -94,13 +96,22 @@ If every check succeed, the output should look like that:
  [ OK ] /etc/systemd/system/OpenMicroView.service: XAUTHORITY path seems correct
  [INFO] Reboot may be required if you edited the configuration.
 ```
+### 5. Automatically Fix
+If required you can try to automatically fix the `/boot/config.txt` file with:
+```sh
+OpenMicroView/install/install.sh -E
+```
+and run step `4.` Once again to check the final config.
+
+### 6. Reboot
+Reboot the system (`sudo reboot`). The OpenMicroView UI should show up at start.
 
 ### Note
 You can see full usage of the installation tool using:
 ```sh
 install/install.sh -h
 ```
-or you can execute `-DSC` or `-A` to install dependencies, service, and 
+or you can execute `-DSEC` or `-A` to install dependencies, service, and 
 to check for configuration errors.
 
 # Starting the interface
