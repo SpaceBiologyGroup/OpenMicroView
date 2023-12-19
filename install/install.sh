@@ -19,10 +19,11 @@ WARN_COLOR="\E[38;2;235;110;0m"
 MC="\E[38;2;0;220;255m"
 RCOLOR="\033[m"
 # Options
+SHOW_LICENSE=0
 DAEMON_INSTALL=0
 DEPENDENCIES_INSTALL=0
 CONFIG_CHECK=0
-SHOW_LICENSE=0
+EDIT_CONFIG=0
 
 TESTED_OS=(
     "2019-07-10"
@@ -32,6 +33,11 @@ TESTED_OS=(
     "2022-09-06"
     "2023-02-21"
 )
+
+BOOT_CONFIG=/boot/config.txt
+if [ -e /boot/firmware/config.txt ] ; then
+    BOOT_CONFIG=/boot/firmware/config.txt
+fi
 
 no_color(){
     COLOR1=""
@@ -43,15 +49,20 @@ no_color(){
 
 usage(){
 echo "Usage: $0 [OPTION]...
-Install $SOFT_NAME requirements.
+Install $SOFT_NAME requirements and configure device.
 
+ HELP
   -h      Show this Help and exit
-  -L      Show License and exit
+  -l      Show License and exit
 
-  -A      All: equivalent to '-DSC', recommended for a full install
-  -D      Install apt and python Dependencies as root
+ ACTIONS:
+  -A      All: equivalent to '-DSEC', recommended for a full install
+  -D      Install system (apt) and python Dependencies as root
   -S      Install as a Service, auto-start at boot.
-  -C      Check raspberry pi configuration.
+  -E      Try to automatically edit the Raspberry Pi configuration.
+  -C      Check Raspberry Pi configuration.
+  
+ FORMAT
   -t      No Colors - if your terminal doesn't support coloring.
 
 Debug:
@@ -75,17 +86,20 @@ install_dir=$(dirname "$0")
 cd "${install_dir}/../" 2>/dev/null
 
 # Check options
-while getopts "hADStCL" arg; do
+while getopts "hlADSECt" arg; do
   case $arg in
     h) usage ;;
-    L) license ;;
+    l) license ;;
     A) DAEMON_INSTALL=1
        DEPENDENCIES_INSTALL=1
+       EDIT_CONFIG=1
        CONFIG_CHECK=1 ;;
     D) DEPENDENCIES_INSTALL=1 ;;
     C) CONFIG_CHECK=1 ;;
     S) DAEMON_INSTALL=1 ;;
+    E) EDIT_CONFIG=1 ;;
     t) no_color ;;
+    *) usage ;;
   esac
 done
 
@@ -110,7 +124,7 @@ warning(){
     echo -e $WARN_COLOR "[WARN]" $msg $RCOLOR
 }
 
-# FUNCTIONS
+# Installer functions
 install_sys_deps(){
     info "Updating apt database..."
     apt update
@@ -127,7 +141,7 @@ install_python_deps(){
     ok "Python dependencies installed."
 }
 
-# daemon installation
+# service installer functions
 setup_permissions(){
     chown $SYS_USER:$SYS_USER -R $INSTALL_DIR &&
 	chmod 600 $INSTALL_DIR/*.py &&
@@ -145,6 +159,67 @@ install_autostart(){
     ok "Service as been enable at boot."
     info "To disable autoboot, use: '${RCOLOR}systemctl disable $SOFT_NAME.service${COLOR1}'"
     info "To manually start $SOFT_NAME, use: '${RCOLOR}service $SOFT_NAME start${COLOR1}'"
+}
+
+# Fix Config functions
+config_error(){
+    error "An error occured while fixing the configuration. Do it manually."
+}
+
+fix_configuration(){
+    info "Automatically configuring the Raspberry Pi"
+    BAKUP='/root/boot-config-txt.bak'
+    info "| Backing up '$BOOT_CONFIG' to '$BAKUP'"
+    cp "$BOOT_CONFIG" "$BAKUP"
+    info "| Activating camera..."
+    # Activate camera
+    raspi-config nonint do_camera 0
+    if [[ $? -ne 0 ]]; then config_error; fi
+    info "| Activating LED compatibility..."
+    # LED config
+    raspi-config nonint set_config_var dtparam=audio off $CONFIG
+    if [[ $? -ne 0 ]]; then config_error; fi
+}
+
+# Check Config Functions
+check_versions(){
+    release=$(egrep -o "20[0-9]{2}-[0-1][0-9]-[0-3][0-9]" /boot/issue.txt)
+    for version in ${TESTED_OS[@]}; do
+        if [[ "${version}" == "${release}" ]]; then
+            ok "OS Version ${release} has been tested and validated"
+            return 1
+        fi
+    done
+    warning "OS Version ${release} has not been tested or validated. Full Version:"
+    cat /boot/issue.txt
+    return 0
+}
+
+is_set(){
+    search_text=$1
+	file=$2
+    grep $search_text $file >/dev/null
+    return $?
+}
+
+check(){
+    param=$1
+    return_code=$2
+    level=$3
+    error=$4
+	file=$5
+	full_line=$6
+	[[ $full_line -eq 0 ]] && RE="$param" || RE="^$param\$"
+    is_set $RE $file
+    r=$?
+    if [[ $r -ne $return_code ]]; then
+    [[ $return_code -eq 0 ]] && t="not set" || t="is a misconfiguration"
+            $level "$file: '$param' $t, $error"
+	else
+    [[ $return_code -ne 0 ]] && t="error absent" || t="is set"
+            ok "$file: '$param' $t"
+    fi
+    return $r
 }
 
 # MAIN :
@@ -180,7 +255,7 @@ if [ ! -d "./install" ]; then
     exit
 fi
 
-CHOICE=$(( DEPENDENCIES_INSTALL + DAEMON_INSTALL + CONFIG_CHECK ))
+CHOICE=$(( DEPENDENCIES_INSTALL + DAEMON_INSTALL + CONFIG_CHECK + EDIT_CONFIG ))
 if [[ "$CHOICE" -eq 0 ]]; then
     error "No option was chosen."
     echo
@@ -231,66 +306,28 @@ fi
 
 # Config Check
 
-check_versions(){
-    release=$(egrep -o "20[0-9]{2}-[0-1][0-9]-[0-3][0-9]" /boot/issue.txt)
-    for version in ${TESTED_OS[@]}; do
-        if [[ "${version}" == "${release}" ]]; then
-            ok "OS Version ${release} has been tested and validated"
-            return 1
-        fi
-    done
-    warning "OS Version ${release} has not been tested or validated. Full Version:"
-    cat /boot/issue.txt
-    return 0
-}
-
-is_set(){
-        search_text=$1
-	file=$2
-        grep $search_text $file >/dev/null
-        return $?
-}
-
-check(){
-    param=$1
-    return_code=$2
-    level=$3
-    error=$4
-	file=$5
-	full_line=$6
-	[[ $full_line -eq 0 ]] && RE="$param" || RE="^$param\$"
-    is_set $RE $file
-    r=$?
-    if [[ $r -ne $return_code ]]; then
-    [[ $return_code -eq 0 ]] && t="not set" || t="is a misconfiguration"
-            $level "$file: '$param' $t, $error"
-	else
-    [[ $return_code -ne 0 ]] && t="error absent" || t="is set"
-            ok "$file: '$param' $t"
-    fi
-    return $r
-}
-
+if [[ EDIT_CONFIG -eq 1 ]]; then
+    fix_configuration
+fi
 
 if [[ CONFIG_CHECK -eq 1 ]]; then
     check_versions
-	boot_config='/boot/config.txt'
-	info "Checking '$boot_config'..."
-	check "dtparam=audio=off" 0 error "LED may not work properly. Edit $boot_config manually" $boot_config 1
+	info "Checking '$BOOT_CONFIG'..."
+	check "dtparam=audio=off" 0 error "LED may not work properly. Edit $BOOT_CONFIG manually" $BOOT_CONFIG 1
     if [[ $? -ne 0 ]]; then
-        line=$(grep 'dtparam=audio=' $boot_config -n)
+        line=$(grep 'dtparam=audio=' $BOOT_CONFIG -n)
         if [[ $? -eq 0 ]]; then
             warning "dtparam config is present on line $line"
         fi
     fi
-	check "start_x=1" 0 error "Camera seems disable. Use 'sudo raspi-config' > 3 > 1 > Yes" $boot_config 1
-	check "gpu_mem=128" 0 warning "gpu_mem should be >= 128 for the camera to work properly" $boot_config 1
-	# check "enable_uart=1" 0 info "required for non-root operation" $boot_config
-	# check "dtparam=spi=on" 0 info "required for non-root operation" $boot_config
+	check "start_x=1" 0 error "Camera seems disable. Use 'sudo raspi-config' > 3 > 1 > Yes" $BOOT_CONFIG 1
+	check "gpu_mem=128" 0 warning "gpu_mem should be >= 128 for the camera to work properly" $BOOT_CONFIG 1
+	# check "enable_uart=1" 0 info "required for non-root operation" $BOOT_CONFIG
+	# check "dtparam=spi=on" 0 info "required for non-root operation" $BOOT_CONFIG
 	info "Checking Service configuration..."
 	ls -l $SYSD_FILE >/dev/null 2>/dev/null
 	if [[ $? -ne 0 ]]; then
-		info "$SOFT_NAME Service is not installed."
+		warning "$SOFT_NAME Service is not installed."
 	else
 		ok "$SOFT_NAME Service is installed."
 		check 'DISPLAY="' 1 error 'DISPLAY should be set to something (usually :0 or :0.0)' $SYSD_FILE 0
