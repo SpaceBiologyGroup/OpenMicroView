@@ -23,14 +23,9 @@ On older system the options are sightly different:
 ### Config File
 The following settings should be set in the config file `/boot/config.txt`:
 
- - `disable_oversan=1` (Optional)
- - `dtparam=i2c_arm=on` (Optional)
- -  `dtparam=audio=off` (**Required** for LED operations)
- - `[pi4]` :
-    - `dtoverlay=vc4-fkms-v3d`
-    - `max_framebuffers=2` 
-- `[all]`
-    - `start_x=1` (Required for camera)
+ - `dtparam=audio=off` (**Required** for LED operations, use `raspi-config nonint set_config_var dtparam=audio off /boot/config.txt`)
+ - `[all]`
+    - `start_x=1`   (Required for camera, use `raspi-config nonint do_camera 0`)
     - `gpu_mem=128`
 
 #### Allow software to run as normal user
@@ -38,7 +33,7 @@ While this is theoritically feasable, this procedure **has not been tested** and
 is therefore not recommended.  
 To allow the software to run as normal user the following change would be required:
 - Connect LED to D10 instead of D18 GPIO PIN
-- set `open_micro_view.mm_microscope_lighy.LED_PIN` to `board.D10` before start()
+- Change file `open_micro_view.Microscope_light.py`, constant `LED_PIN` to `board.D10`
 - Change following configuration in `/boot/config.txt`:
  - `dtparam=spi=on`
  - `enable_uart=1`
@@ -48,51 +43,65 @@ To allow the software to run as normal user the following change would be requir
 > saving, reading or copying pictures. Temperature may also not be available.
 
 ## Installation of OpenMicroView
-Installation script is located in `install/` directory but should be run from
-the root directory of the project. 
+Installation script is located in `install/` directory.
+You can launch it with `sudo OpenMicroView/install/install.sh`
 
 ### One-liner installation
 You can execute this command, it will do the same as below steps 1, 2, 3 and 4 in a single line.
 ```
-git clone https://github.com/Space-Biology-Group/OpenMicroView --depth 1 && cd OpenMicroView && sudo install/install.sh -A
+git clone https://github.com/SpaceBiologyGroup/OpenMicroView --depth 1 && sudo OpenMicroView/install/install.sh -A
 ```
 
-If you prefer to play it safe and control every steps, you can do it step by step as shown below.
+If you prefer to control every steps, you can do it step by step as shown below.
 
 ### 1. Download the project
 
 ```sh
-cd ~/Downloads/
-git clone https://github.com/Space-Biology-Group/OpenMicroView
+git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView
 ```
 
 ### 2. Install Dependencies
 To install dependencies, run the following command as root: 
 ```sh
-install/install.sh -D
+OpenMicroView/install/install.sh -D
 ```
 
 ### 3. Installing as Service (optional)
 To install OpenMicroView as a service, run the following command as root: 
 ```sh
-install/install.sh -S
+OpenMicroView/install/install.sh -S
 ```
 The software will be copied in `/opt/OpenMicroView/` and a service file
 will be created in systemd directory.
 
 ### 4. Check your raspberry pi configuration
 The install script allows you to check for classical configuration errors,
-to do so you can just run the following command as root:
+To do so you can just run the following command as root:
 ```sh
-install/install.sh -C
+OpenMicroView/install/install.sh -C
 ```
+
+If every check succeed, the output should look like that:
+```
+ [ OK ] OS Version XXXX-XX-XX has been tested and validated
+ [INFO] Checking '/boot/config.txt'...
+ [ OK ] /boot/config.txt: 'dtparam=audio=off' is set
+ [ OK ] /boot/config.txt: 'start_x=1' is set
+ [ OK ] /boot/config.txt: 'gpu_mem=128' is set
+ [INFO] Checking Service configuration...
+ [ OK ] OpenMicroView Service is installed.
+ [ OK ] /etc/systemd/system/OpenMicroView.service: 'DISPLAY="' error absent
+ [ OK ] /etc/systemd/system/OpenMicroView.service: XAUTHORITY path seems correct
+ [INFO] Reboot may be required if you edited the configuration.
+```
+
 ### Note
 You can see full usage of the installation tool using:
 ```sh
 install/install.sh -h
 ```
-or you can execute `-DSC` or `-A` to install dependencies and service, and also
-check for configuration errors.
+or you can execute `-DSC` or `-A` to install dependencies, service, and 
+to check for configuration errors.
 
 # Starting the interface
 ## Service
@@ -124,14 +133,15 @@ cd OpenMicroView
 # Start interface
 sudo python3 ./start.py
 ```
-> **NOTE**  
+> **Note**  
 > If you want to connect via SSH, you'll need to locally start a terminal
 > (`CTRL+T`) and open a screen session (`screen -q`). Then join this screen
 > session from ssh using `screen -x`.
 
 
 # Debugging
-- `Authentication error`: prepend `sudo` (e.g. `sudo service OpenMicroView start`)
+- `Authentication error`:
+    - Make sure you are login as root or you prepended `sudo` (e.g. `sudo service OpenMicroView start`)
 - The software doesn't start at all
     - Look at the logs with `journalctl -u OpenMicroView -f`
     - Verify 'camera' or 'Legacy Camera' is activated (`sudo raspi-config` 
@@ -140,7 +150,7 @@ sudo python3 ./start.py
         - open `/etc/systemd/system/OpenMicroView.service` 
         - Check `Environment="DISPLAY=<value>"`: `<value>` is equal to the
           output of `echo $DISPLAY` when executed directly on the targeted
-          screen (`:0`, `:0.0`, ...).
+          screen, not from SSH session (`:0`, `:0.0`, ...).
         - Check `Environment="XAUTHORITY=/home/<user>/.Xauthority"`: `<user>`
           is you're normal user. You can execute `ls -1 /home/` to find the
           correct user. Choose default user if several exists.
@@ -151,11 +161,16 @@ sudo python3 ./start.py
     - Verify `/boot/config.txt` contains `dtparam=audio=off`
     - Verify LED is connected on `GPIO D18` connector
 - If the Screen is not calibrated:
-    - Most likely due to newer kernel reason. Investigation on going...
+    - This is likely due to kernel compatibility issue
+    - Use one of the Compatible OS [listed below](#Versions)
 
 # Versions
 ## Hardware
-The software has been developped, tested and validated to run on a RaspberryPi 3B
+The software has been developped, tested and validated to run on a **RaspberryPi 3B**.  
+Using Raspberry Pi 4 would result in hardware compatibility issues with the case of the OpenMicroView
+microscope. Nevertheless, although it was not yet tested and it is therefore not recommended,
+RaspberryPi 5 could be compatible (TBC) as the USB/Network port have the same location as the
+RaspberryPi 3B.
 
 ## Operating System
 [See on RaspberryPi Website](https://downloads.raspberrypi.com/raspios_oldstable_armhf/images/)
@@ -169,9 +184,8 @@ OpenMicroView has been tested and validated on the following system versions:
 | 3B  | raspios_oldstable_armhf | 2022-01-28 | 5.10.63 | `60f6a26ed5701eec6be5c864dd0db48fe6244fad` |
 | 3B  | raspios_oldstable_armhf | 2022-04-04 | 5.10.103| `910e079df1266036159ce4ea2aaa2ba9976ea3f1` |
 | 3B  | raspios_oldstable_armhf | 2022-09-06 | 5.10.103| `91e90da69cf0b1ddae23764b417bd6b43ec02c63` |
-| 3B  | raspios_oldstable_armhf | 2023-02-21*| 5.10.103| `b57a33ad0991ffc19cd7b47cb7e20e3217705573` |
+| 3B  | raspios_oldstable_armhf | 2023-02-21 | 5.10.103| `b57a33ad0991ffc19cd7b47cb7e20e3217705573` |
 
-_* Recommended_
 
 The following system versions presented issues during the tests:
 | RPi |      Image              |  Release   | Kernel  | Issues                           | Firmware Hash   | 
@@ -181,12 +195,11 @@ The following system versions presented issues during the tests:
 | 3B  | raspios_oldstable_armhf | 2023-12-05 | 6.1.21  |Uncalibr. touchscreen             | `446f3...e19da` |
 
 
-_¹ Camera seems not detected due to a transition from old Camera library to new library. No solution found at the moment._  
-_² The screen drivers seems to be broken and provoke the screen to turn off. Redownloading/installing the system may fix the issue._
-
-_³ The touchscreen issue doesn't seem to be kernel related. No solution found at the moment,_
+_¹ Camera seems not detected due to a transition from old Camera library to new library. No solution found at the moment. Use another version._  
+_² The screen drivers seems to be broken and provoke the screen to turn off. Redownloading/installing the system may fix the issue._  
+_³ The touchscreen issue may or may not be related to the kernel version. No solution found at the moment. Use another version._  
 
 
 > **Note**
 > The hash is available in the `.info` file along with the img/xz file, or in the system
-> open the file `/boot/issue.txt`
+> run the command `cat /boot/issue.txt`
