@@ -9,15 +9,10 @@ running or service interaction.
 # Installation
 ## Raspberry Pi Configuration
 Part of the Raspberry Pi configuration is covered by this installer when using
-the `-E` or `-A` options:
+the `-E` or `-A` options. 
 
-### Raspi-Config
-The following Camera can be manually activated using `raspi-config`:
-
-If you have a recent system, you must activate legacy-camera support via:  
-`3 Interface Options` > `I1 Legacy Camera` > `Enable`
-On older system the options are sightly different: 
-`3 Interface Options` > `1 Camera` > `Yes`
+Nevertheless, the Camera can be manually activated using `raspi-config`:
+ - `3 Interface Options` > `1 Camera` > `Yes`   
 
 That will automatically add the following lines at the end of `/boot/config.txt`
 ```toml
@@ -25,10 +20,9 @@ That will automatically add the following lines at the end of `/boot/config.txt`
 start_x=1
 gpu_mem=128
 ```
-### Config File
-In order for the LEDs to work correctly, the following setting should be set in
-the config file `/boot/config.txt`:
-```toml
+
+You can also manually edit the same config file to allow LEDs to work correctly:
+```conf
 dtparam=audio=off
 ```
 
@@ -44,8 +38,9 @@ To allow the software to run as normal user the following change would be requir
 - Connect LED to D10 instead of D18 GPIO PIN
 - In file `src/open_micro_view/microscope_light.py`, change constant `LED_PIN` 
   to `board.D10`
+  
 - In `/boot/config.txt` verify/change or add the config:
-  ```toml
+  ```conf
   dtparam=spi=on
   enable_uart=1
   ```
@@ -71,21 +66,18 @@ Once done, if no error happened you can reboot the Raspberry Pi with
 If you prefer to control every steps, you can do it step by step as shown below.
 
 ### 1. Download the project
-
 ```sh
 git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView --depth 1
 ```
 
 ### 2. Install Dependencies
-To install dependencies, run the following command as root: 
 ```sh
-OpenMicroView/install/install.sh -D
+sudo OpenMicroView/install/install.sh -D
 ```
 
-### 3. Installing as Service (optional)
-To install OpenMicroView as a service, run the following command as root: 
+### 3. Installing as Service
 ```sh
-OpenMicroView/install/install.sh -S
+sudo OpenMicroView/install/install.sh -S
 ```
 The software will be copied in `/opt/OpenMicroView/` and a service file
 will be created in the systemd directory.
@@ -94,7 +86,7 @@ will be created in the systemd directory.
 The install script allows you to check for classical configuration errors,
 To do so you can just run the following command as root:
 ```sh
-OpenMicroView/install/install.sh -C
+sudo OpenMicroView/install/install.sh -C
 ```
 
 If every check succeed, the output should look like that:
@@ -113,7 +105,7 @@ If every check succeed, the output should look like that:
 ### 5. Automatically Fix
 If required you can try to automatically fix the `/boot/config.txt` file with:
 ```sh
-OpenMicroView/install/install.sh -E
+sudo OpenMicroView/install/install.sh -E
 ```
 then, run step `4.` Once again to check the final config.
 
@@ -125,13 +117,12 @@ You can see full usage of the installation tool using:
 ```sh
 install/install.sh -h
 ```
-or you can execute `-DSEC` or `-A` to install dependencies, service, and 
-to check for configuration errors.
 
 # Starting the interface
 ## Service
-If you installed OpenMicroView as a Service, you can use the following commands
-to start/stop/restart or view the status of OpenMicroView:
+If you installed OpenMicroView as a Service, you can restart the system
+or use the following commands to start/stop/restart or view the status
+of OpenMicroView:
 ```sh
 service OpenMicroView start
 service OpenMicroView stop
@@ -145,8 +136,7 @@ systemctl disable OpenMicroView.service
 ```
 In order to view the logs from the service:
 ```sh
-journalctl -u OpenMicroView
-# add `-f` to follow logs in real time
+journalctl -u OpenMicroView -f
 ```
 
 ## Standalone
@@ -166,7 +156,7 @@ sudo python3 ./start.py
 
 # Debugging
 - `Authentication error`:
-  - Make sure you are login as root or you prepended `sudo` (e.g. `sudo service OpenMicroView start`)
+  - Make sure you are logged in as root or you prepended `sudo`
 - The software doesn't start at all
   - Look at the logs with `journalctl -u OpenMicroView -f`
   - Verify 'camera' or 'Legacy Camera' is activated (`sudo raspi-config` 
