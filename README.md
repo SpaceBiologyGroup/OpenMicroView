@@ -8,77 +8,85 @@ running or service interaction.
 
 # Installation
 ## Raspberry Pi Configuration
-The Raspberry Pi configuration is not covered by this installer as it depends
-on the operating system you have installed. Nevertheless here are some
-recommendations for the configuration.
+Part of the Raspberry Pi configuration is covered by this installer when using
+the `-E` or `-A` options. 
 
-### Raspi-Config
-The following settings should be manually set using `raspi-config`:
+Nevertheless, the Camera can be manually activated using `raspi-config`:
+ - `3 Interface Options` > `1 Camera` > `Yes`   
 
-If you have a recent system, you must activate legacy-camera support via:  
-`3 Interface Options` > `I1 Legacy Camera` > `Enable`
-On older system the options are sightly different: 
-`3 Interface Options` > `1 Camera` > `Yes`
+That will automatically add the following lines at the end of `/boot/config.txt`
+```toml
+[all]
+start_x=1
+gpu_mem=128
+```
 
-### Config File
-The following settings should be set in the config file `/boot/config.txt`:
+You can also manually edit the same config file to allow LEDs to work correctly:
+```conf
+dtparam=audio=off
+```
 
- - `dtparam=audio=off` (**Required** for LED operations, use `raspi-config nonint set_config_var dtparam=audio off /boot/config.txt`)
- - `[all]`
-    - `start_x=1`   (Required for camera, use `raspi-config nonint do_camera 0`)
-    - `gpu_mem=128`
+### Not covered
+Network or user configuration is not covered by the installer as it depends on
+your setup. During our tests the default user was used, and the connection to
+the network was established via cable.
 
 #### Allow software to run as normal user
 While this is theoritically feasable, this procedure **has not been tested** and
 is therefore not recommended.  
 To allow the software to run as normal user the following change would be required:
 - Connect LED to D10 instead of D18 GPIO PIN
-- Change file `open_micro_view.Microscope_light.py`, constant `LED_PIN` to `board.D10`
-- Change following configuration in `/boot/config.txt`:
- - `dtparam=spi=on`
- - `enable_uart=1`
+- In file `src/open_micro_view/microscope_light.py`, change constant `LED_PIN` 
+  to `board.D10`
+  
+- In `/boot/config.txt` verify/change or add the config:
+  ```conf
+  dtparam=spi=on
+  enable_uart=1
+  ```
+
 
 > **Note**  
 > Running the process as a normal user may provoke permission errors while
-> saving, reading or copying pictures. Temperature may also not be available.
+> saving, reading or copying pictures. The setup of directory permissions are
+> not detailled here.
 
 ## Installation of OpenMicroView
-Installation script is located in `install/` directory.
-You can launch it with `sudo OpenMicroView/install/install.sh`
+Installation script is located in the `install/` directory.
 
 ### One-liner installation
-You can execute this command, it will do the same as below steps 1, 2, 3 and 4 in a single line.
+You can execute this command, it will do the same as below steps 1, 2, 3, 4 and
+5 in a single line.
+```sh
+git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView --depth 1 && sudo OpenMicroView/install/install.sh -A
 ```
-git clone https://github.com/SpaceBiologyGroup/OpenMicroView --depth 1 && sudo OpenMicroView/install/install.sh -A
-```
+Once done, if no error happened you can reboot the Raspberry Pi with
+`sudo reboot`.
 
 If you prefer to control every steps, you can do it step by step as shown below.
 
 ### 1. Download the project
-
 ```sh
-git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView
+git clone ssh://git@github.com/SpaceBiologyGroup/OpenMicroView --depth 1
 ```
 
 ### 2. Install Dependencies
-To install dependencies, run the following command as root: 
 ```sh
-OpenMicroView/install/install.sh -D
+sudo OpenMicroView/install/install.sh -D
 ```
 
-### 3. Installing as Service (optional)
-To install OpenMicroView as a service, run the following command as root: 
+### 3. Installing as Service
 ```sh
-OpenMicroView/install/install.sh -S
+sudo OpenMicroView/install/install.sh -S
 ```
 The software will be copied in `/opt/OpenMicroView/` and a service file
-will be created in systemd directory.
+will be created in the systemd directory.
 
 ### 4. Check your raspberry pi configuration
 The install script allows you to check for classical configuration errors,
 To do so you can just run the following command as root:
 ```sh
-OpenMicroView/install/install.sh -C
+sudo OpenMicroView/install/install.sh -C
 ```
 
 If every check succeed, the output should look like that:
@@ -94,19 +102,27 @@ If every check succeed, the output should look like that:
  [ OK ] /etc/systemd/system/OpenMicroView.service: XAUTHORITY path seems correct
  [INFO] Reboot may be required if you edited the configuration.
 ```
+### 5. Automatically Fix
+If required you can try to automatically fix the `/boot/config.txt` file with:
+```sh
+sudo OpenMicroView/install/install.sh -E
+```
+then, run step `4.` Once again to check the final config.
+
+### 6. Reboot
+Reboot the system (`sudo reboot`). Then, OpenMicroView UI should show up at start.
 
 ### Note
 You can see full usage of the installation tool using:
 ```sh
 install/install.sh -h
 ```
-or you can execute `-DSC` or `-A` to install dependencies, service, and 
-to check for configuration errors.
 
 # Starting the interface
 ## Service
-If you installed OpenMicroView as a Service, you can use the following commands
-to start/stop/restart or view the status of OpenMicroView:
+If you installed OpenMicroView as a Service, you can restart the system
+or use the following commands to start/stop/restart or view the status
+of OpenMicroView:
 ```sh
 service OpenMicroView start
 service OpenMicroView stop
@@ -120,8 +136,7 @@ systemctl disable OpenMicroView.service
 ```
 In order to view the logs from the service:
 ```sh
-journalctl -u OpenMicroView
-# add `-f` to follow logs in real time
+journalctl -u OpenMicroView -f
 ```
 
 ## Standalone
@@ -141,28 +156,40 @@ sudo python3 ./start.py
 
 # Debugging
 - `Authentication error`:
-    - Make sure you are login as root or you prepended `sudo` (e.g. `sudo service OpenMicroView start`)
+  - Make sure you are logged in as root or you prepended `sudo`
 - The software doesn't start at all
-    - Look at the logs with `journalctl -u OpenMicroView -f`
-    - Verify 'camera' or 'Legacy Camera' is activated (`sudo raspi-config` 
-      -> `3 Interface` > `1 (Legacy) Camera`)
-    - If started using the service verify the following
-        - open `/etc/systemd/system/OpenMicroView.service` 
-        - Check `Environment="DISPLAY=<value>"`: `<value>` is equal to the
-          output of `echo $DISPLAY` when executed directly on the targeted
-          screen, not from SSH session (`:0`, `:0.0`, ...).
-        - Check `Environment="XAUTHORITY=/home/<user>/.Xauthority"`: `<user>`
-          is you're normal user. You can execute `ls -1 /home/` to find the
-          correct user. Choose default user if several exists.
-        - if you make any changes, save, close and reload systemctl with
-          `systemctl daemon-reload`
-        - restart service with `service OpenMicroView stop`
+  - Look at the logs with `journalctl -u OpenMicroView -f`
+  - Verify 'camera' or 'Legacy Camera' is activated (`sudo raspi-config` 
+    -> `3 Interface` > `1 (Legacy) Camera`)
+  - If started using the service verify the following
+    - open `/etc/systemd/system/OpenMicroView.service` 
+    - Check `Environment="DISPLAY=<value>"`: `<value>` is equal to the
+      output of `echo $DISPLAY` when executed directly on the targeted
+      screen, not from SSH session (`:0`, `:0.0`, ...).
+    - Check `Environment="XAUTHORITY=/home/<user>/.Xauthority"`: `<user>`
+      is you're normal user. You can execute `ls -1 /home/` to find the
+      correct user. Choose default user if several exists.
+    - if you make any changes, save, close and reload systemctl with
+      `systemctl daemon-reload`
+    - restart service with `service OpenMicroView stop`
+- Run `OpenMicroView/install/install.sh -C` to check the configuration
+  - If error are found, run `OpenMicroView/install/install.sh -E` to fix them.
 - If the LED do not switch on correctly: 
-    - Verify `/boot/config.txt` contains `dtparam=audio=off`
-    - Verify LED is connected on `GPIO D18` connector
+  - Verify `/boot/config.txt` contains `dtparam=audio=off`
+  - Verify LED is connected on `GPIO D18` connector
 - If the Screen is not calibrated:
-    - This is likely due to kernel compatibility issue
-    - Use one of the Compatible OS [listed below](#Versions)
+  - This is likely due to kernel compatibility issue
+  - Use one of the Compatible OS [listed below](#operating-system)
+- If the screen stays OFF:
+  - Verify connection of the screen to the raspberry
+  - Make sure you are using one  of the [compatible versions](#operating-system)
+  - Connect via SSH for debugging
+- If the camera is not detected:
+  - Verify it is activated using `raspi-config`  
+  - Reboot the system
+  - Make sure you are using one  of the [compatible versions](#operating-system)
+- Verify current system version with `cat /boot/issue.txt`
+
 
 # Versions
 ## Hardware
