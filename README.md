@@ -1,59 +1,28 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![Static Badge](https://img.shields.io/badge/Platform-Raspberry%20Pi-red?logo=raspberrypi)
 
+# _OpenµView_
+## Description
+OpenµView is a project of open source microscope. Both the hardware and the software
+are available to most. The total costs for the Hardware is about ~250 USD, including
+the 3D printed parts, and the electronic pieces. OpenMicroView is running on a
+RaspberryPi micro computer (see [tested hardware](#hardware)). All details are made
+available in the published article (available soon).
 
-# Preamble
-Please note that you'll need to be logged in as `root` (command `sudo su`)
-or to prepend `sudo` to most commands bellow, in particular for installation,
-running or service interaction.
+# Installation and Configuration
+## Prerequisite
+Before to continue with the software installation, make sure you've built the microscope
+hardware.
 
-# Installation
-## Raspberry Pi Configuration
-Part of the Raspberry Pi configuration is covered by this installer when using
-the `-E` or `-A` options. 
+You'll need a Micro-SD Card with a fresh system (see below, [tested versions](#operating-system)), 
+we recommend you to flash the SD Card using the Raspberry Pi Imager.  
+Insert it in your Raspberry Pi (see below [tested hardware](#hardware)).  
 
-Nevertheless, the Camera can be manually activated using `raspi-config`:
- - `3 Interface Options` > `1 Camera` > `Yes`   
-
-That will automatically add the following lines at the end of `/boot/config.txt`
-```toml
-[all]
-start_x=1
-gpu_mem=128
-```
-
-You can also manually edit the same config file to allow LEDs to work correctly:
-```conf
-dtparam=audio=off
-```
-
-### Not covered
-Network or user configuration is not covered by the installer as it depends on
-your setup. During our tests the default user was used, and the connection to
-the network was established via cable.
-
-#### Allow software to run as normal user
-While this is theoritically feasable, this procedure **has not been tested** and
-is therefore not recommended.  
-To allow the software to run as normal user the following change would be required:
-- Connect LED to D10 instead of D18 GPIO PIN
-- In file `src/open_micro_view/microscope_light.py`, change constant `LED_PIN` 
-  to `board.D10`
-  
-- In `/boot/config.txt` verify/change or add the config:
-  ```conf
-  dtparam=spi=on
-  enable_uart=1
-  ```
-
-
-> **Note**  
-> Running the process as a normal user may provoke permission errors while
-> saving, reading or copying pictures. The setup of directory permissions are
-> not detailled here.
+_Network and user configurations are not covered here as it depends on your setup. 
+During our tests the default user was used, and the connection to the network
+was established via cable._
 
 ## Installation of OpenMicroView
-Installation script is located in the `install/` directory.
-
 ### One-liner installation
 You can execute this command, it will do the same as below steps 1, 2, 3, 4 and
 5 in a single line.
@@ -118,6 +87,44 @@ You can see full usage of the installation tool using:
 install/install.sh -h
 ```
 
+## Raspberry Pi Configuration
+This part of the Raspberry Pi configuration is covered by the installer above when 
+using the `-E` or `-A` options. 
+
+Nevertheless, the Camera can be manually activated using `raspi-config`:
+ - `3 Interface Options` > `1 Camera` > `Yes`   
+
+That will automatically add the following lines at the end of `/boot/config.txt`
+```toml
+[all]
+start_x=1
+gpu_mem=128
+```
+
+You can also manually edit the same config file to allow LEDs to work correctly:
+```conf
+dtparam=audio=off
+```
+
+#### Allow software to run as normal user
+While this is theoritically feasable, this procedure **has not been tested** and
+is therefore not recommended.  
+To allow the software to run as normal user the following change would be required:
+- Connect LED to D10 instead of D18 GPIO PIN
+- In file `src/open_micro_view/microscope_light.py`, change constant `LED_PIN` 
+  to `board.D10`
+- In `/boot/config.txt` verify/change or add the config:
+  ```conf
+  dtparam=spi=on
+  enable_uart=1
+  ```
+
+> **Note**  
+> Running the process as a normal user may provoke permission errors while
+> saving, reading or copying pictures. The setup of directory permissions are
+> not detailled here.
+
+
 # Starting the interface
 ## Service
 If you installed OpenMicroView as a Service, you can restart the system
@@ -153,6 +160,30 @@ sudo python3 ./start.py
 > (`CTRL+T`) and open a screen session (`screen -q`). Then join this screen
 > session from ssh using `screen -x`.
 
+# Usage
+After reboot, the GUI will automatically start on the OpenMicroView 
+Microscope Screen.In the main view, you can preview the camera capture
+and you will have access to light, camera and Timelapse settings. 
+You can change light color and brigthness and adjust camera contrast,
+brightness and saturation. On the bottom of the view, you can see the
+current temperature and framerate. If the temperature reached is too
+high, the raspberry may shutdown automatically. You also see the 
+resolution of the next picture to be taken.
+
+In the Timelapse Section you can set several parameters such as the interval
+of pictures in the timelapse, or the quantity of frames to be taken. When 
+capturing over long timeframe do not forget to lock the camera sensor and 
+lens position, using the physical lockers, to prevent shifting.
+
+In the settings you can adjust the resolution of the pictures taken,
+save or load light/camera configuration for later use. Picture management
+is also possible : you can copy all pictures to a USB storage, browse
+local pictures or delete all pictures. A button allows you to switch off
+or reboot the Raspberry Pi, directly from the GUI.
+
+The picture browser allows you to view existing pictures and timelapses.
+Timelapses can be previewed and played, but the loading can take some time,
+depending on the size of it. Each Picture or timelapse can be deleted.
 
 # Debugging
 - `Authentication error`:
@@ -230,3 +261,10 @@ _³ The touchscreen issue may or may not be related to the kernel version. No so
 > **Note**
 > The hash is available in the `.info` file along with the img/xz file, or in the system
 > run the command `cat /boot/issue.txt`
+
+# License
+ OpenMicroView - Copyright © 2023   
+ This program comes with ABSOLUTELY NO WARRANTY.   
+ This is free software, and you are welcome to redistribute it
+ under certain conditions.  
+ See [license file](LICENSE) for more details
