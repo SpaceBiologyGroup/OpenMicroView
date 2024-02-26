@@ -1,6 +1,6 @@
 [project]
 name = "openmicroview"
-version = "0.8.2"
+version = "1.0.0"
 description = "GUI for the open source, Raspberry Pi based OpenMicroView Microscope"
 license = {file = "LICENSE"}
 readme = "README.md"
