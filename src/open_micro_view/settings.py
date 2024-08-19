@@ -221,7 +221,7 @@ class Settings:
         current = self.cur_res
         new = res[r]
         if (current != new):
-            self.camera.videoQueue.put(new)
+            self.camera.video_queue.put(new)
             self.cur_res = new
         return True
 

@@ -287,6 +287,9 @@ class ImageBrowser():
         self.frame.update()
         try:
             photo:Image = Image.open(self.current_image_path)
+            mp = f"{round((photo.width * photo.height) / 1_000_000, 1):.1f} MP"
+            self.tk_file_info.set(self.tk_file_info.get() +
+                                  f" - {photo.width}x{photo.height} ({mp})")
             # Set size
             ratio = min(self.max_w / photo.width, self.max_h / photo.height)
             height = int(photo.height * ratio)
