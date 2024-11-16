@@ -1,13 +1,19 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Static Badge](https://img.shields.io/badge/Platform-Raspberry%20Pi-red?logo=raspberrypi)
 
+> [!IMPORTANT] 
+> This software has been the object of a publication in the science journal HardwareX, published
+> in december 2024. The publication describe in details the process to build and setup the
+> mini-microscope OpenMicroView.  
+> Article: [DOI: 10.1016/j.ohx.2024.e00593](https://doi.org/10.1016/j.ohx.2024.e00593)  
+
 # _OpenµView_
 ## Description
 OpenµView is a project of open source microscope. Both the hardware and the software
 are available to most. The total costs for the Hardware is about ~250 USD, including
 the 3D printed parts, and the electronic pieces. OpenMicroView is running on a
 RaspberryPi micro computer (see [tested hardware](#hardware)). All details are made
-available in the published article (available soon).
+available in the [published article](https://doi.org/10.1016/j.ohx.2024.e00593).
 
 # Installation and Configuration
 ## Prerequisite
@@ -119,7 +125,7 @@ To allow the software to run as normal user the following change would be requir
   enable_uart=1
   ```
 
-> **Note**  
+> [!NOTE]  
 > Running the process as a normal user may provoke permission errors while
 > saving, reading or copying pictures. The setup of directory permissions are
 > not detailled here.
@@ -155,14 +161,14 @@ cd OpenMicroView
 # Start interface
 sudo python3 ./start.py
 ```
-> **Note**  
+> [!NOTE]  
 > If you want to connect via SSH, you'll need to locally start a terminal
 > (`CTRL+T`) and open a screen session (`screen -q`). Then join this screen
 > session from ssh using `screen -x`.
 
 # Usage
 After reboot, the GUI will automatically start on the OpenMicroView 
-Microscope Screen.In the main view, you can preview the camera capture
+Microscope Screen. In the main view, you can preview the camera capture
 and you will have access to light, camera and Timelapse settings. 
 You can change light color and brigthness and adjust camera contrast,
 brightness and saturation. On the bottom of the view, you can see the
@@ -225,10 +231,14 @@ depending on the size of it. Each Picture or timelapse can be deleted.
 # Versions
 ## Hardware
 The software has been developped, tested and validated to run on a **RaspberryPi 3B**.  
-Using Raspberry Pi 4 would result in hardware compatibility issues with the case of the OpenMicroView
-microscope. Nevertheless, although it was not yet tested and it is therefore not recommended,
-RaspberryPi 5 could be compatible (TBC) as the USB/Network port have the same location as the
-RaspberryPi 3B.
+
+Incompatibility: 
+- Using Raspberry Pi 4 would result in hardware compatibility issues with the case of the OpenMicroView
+  microscope. It has not yet been tested and is therefore not recommended.
+- RaspberryPi 5 might result in screen failure, but the USB/Network port have the same location as
+  the RaspberryPi 3B. It could be considered when the screen manufacturer release a compatible screen.
+
+See [published article](https://doi.org/10.1016/j.ohx.2024.e00593) for more information.
 
 ## Operating System
 [See on RaspberryPi Website](https://downloads.raspberrypi.com/raspios_oldstable_armhf/images/)
@@ -258,7 +268,7 @@ _² The screen drivers seems to be broken and provoke the screen to turn off. Re
 _³ The touchscreen issue may or may not be related to the kernel version. No solution found at the moment. Use another version._  
 
 
-> **Note**
+> [!NOTE]
 > The hash is available in the `.info` file along with the img/xz file, or in the system
 > run the command `cat /boot/issue.txt`
 
